@@ -56,43 +56,45 @@ body {
 /* ── HEADER ── */
 #header {
   position: fixed; top:0; left:0; right:0; z-index:200;
-  height: 56px;
+  min-height: 56px;
   display: flex; align-items:center; justify-content:space-between;
-  padding: 0 28px;
+  padding: 10px 20px;
   background: var(--B);
   border-bottom: 1.5px solid var(--G3);
   transition: border-color .3s;
+  gap: 12px;
 }
 #header.scrolled { border-color: var(--Y); }
 
 .logo {
-  display: flex; align-items:baseline; gap:10px; cursor:default;
+  display: flex; flex-direction:column; gap:2px; cursor:default; flex-shrink:0;
 }
 .logo-ocd {
   font-family: var(--FD);
   font-size: 20px;
   color: var(--Y);
   letter-spacing: 2px;
+  line-height: 1;
 }
-.logo-dot { width:6px; height:6px; background:var(--Y); border-radius:50%; margin-bottom:3px; align-self:flex-end; }
 .logo-full {
-  font-size: 10px;
-  letter-spacing: 3px;
+  font-size: 9px;
+  letter-spacing: 2px;
   color: var(--MU);
   text-transform: uppercase;
+  line-height: 1;
 }
 
 .header-right {
-  display: flex; align-items:center; gap:20px;
+  display: flex; align-items:center; gap:10px; flex-shrink:0;
 }
 
 .hstat {
   display:flex; flex-direction:column; align-items:flex-end;
-  font-size:9px; letter-spacing:2px; color:var(--MU); text-transform:uppercase;
+  font-size:8px; letter-spacing:1.5px; color:var(--MU); text-transform:uppercase;
 }
 .hstat-val {
   font-family: var(--FD);
-  font-size:15px;
+  font-size:14px;
   color: var(--Y);
   line-height:1;
 }
@@ -102,18 +104,41 @@ body {
   border: 1.5px solid var(--G4);
   color: var(--MU);
   font-family: var(--FM);
-  font-size: 10px;
-  letter-spacing: 2px;
-  padding: 7px 14px;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  padding: 6px 10px;
   cursor: pointer;
   text-transform: uppercase;
   transition: all .2s;
+  white-space: nowrap;
 }
 .map-btn:hover { border-color:var(--Y); color:var(--Y); }
 
+/* ── INSTALL BTN ── */
+#install-btn {
+  background: var(--Y);
+  color: var(--B);
+  border: none;
+  font-family: var(--FD);
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  padding: 7px 12px;
+  cursor: pointer;
+  text-transform: uppercase;
+  display: none;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  transition: transform .15s, box-shadow .15s;
+  flex-shrink: 0;
+}
+#install-btn.show { display: flex; }
+#install-btn:hover { transform:translate(-2px,-2px); box-shadow:2px 2px 0 var(--W); }
+#install-btn:active { transform:translate(0,0); box-shadow:none; }
+
 /* ── MAIN CONTENT ── */
 #app {
-  padding-top: 56px;
+  padding-top: 68px;
   min-height: 100vh;
 }
 
@@ -472,41 +497,6 @@ option { background:var(--G2); }
 }
 @keyframes spin { to{transform:rotate(360deg)} }
 
-/* ── LOG TERMINAL ── */
-#log-wrap {
-  position:fixed; bottom:72px; right:0;
-  width:320px; max-height:180px;
-  background:var(--G1);
-  border-left:1.5px solid var(--G3);
-  border-top:1.5px solid var(--G3);
-  display:none;
-  overflow:hidden;
-  transform-origin: bottom right;
-  animation:logIn .2s ease;
-  z-index:190;
-}
-@keyframes logIn { from{opacity:0;transform:scale(.97)} to{opacity:1;transform:scale(1)} }
-#log-wrap.visible { display:block; }
-.log-header {
-  padding:8px 12px; border-bottom:1px solid var(--G3);
-  font-size:9px; letter-spacing:2px; color:var(--MU);
-  display:flex; align-items:center; justify-content:space-between;
-}
-.log-dot { width:6px; height:6px; border-radius:50%; background:var(--GR); animation:blink 1s ease infinite; }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
-#log {
-  padding:10px 12px;
-  font-size:10px; line-height:1.9;
-  max-height:140px; overflow-y:auto;
-  color:var(--MU);
-}
-#log::-webkit-scrollbar { width:2px; }
-#log::-webkit-scrollbar-thumb { background:var(--Y); }
-.log-ok  { color:var(--GR); }
-.log-err { color:var(--RD); }
-.log-warn{ color:#FFAA00; }
-.log-info{ color:var(--MU); }
-
 /* ── RESULTS DRAWER ── */
 #results-drawer {
   position:fixed; inset:0; z-index:300;
@@ -677,7 +667,6 @@ option { background:var(--G2); }
   .arrow-big { font-size:24px; }
   .results-grid { grid-template-columns:1fr; }
   .map-grid { grid-template-columns:1fr; }
-  #log-wrap { width:100%; border-left:none; }
 }
 </style>
 </head>
@@ -687,7 +676,6 @@ option { background:var(--G2); }
 <header id="header">
   <div class="logo">
     <span class="logo-ocd">OCD</span>
-    <div class="logo-dot"></div>
     <span class="logo-full">Orias Converter Document</span>
   </div>
   <div class="header-right">
@@ -697,9 +685,10 @@ option { background:var(--G2); }
     </div>
     <div class="hstat">
       <span class="hstat-val" id="stat-converted">0</span>
-      <span>converted</span>
+      <span>done</span>
     </div>
-    <button class="map-btn" onclick="openMap()">⇄ FORMAT MAP</button>
+    <button class="map-btn" onclick="openMap()">⇄ MAP</button>
+    <button id="install-btn" onclick="installApp()">⬇ INSTALL</button>
   </div>
 </header>
 
@@ -809,15 +798,6 @@ option { background:var(--G2); }
   </button>
 </div>
 
-<!-- LOG TERMINAL -->
-<div id="log-wrap">
-  <div class="log-header">
-    <span>TERMINAL LOG</span>
-    <div class="log-dot"></div>
-  </div>
-  <div id="log"><span class="log-info">// Siap.</span></div>
-</div>
-
 <!-- RESULTS DRAWER -->
 <div id="results-drawer">
   <div class="drawer-backdrop" onclick="closeResults()"></div>
@@ -905,17 +885,10 @@ window.addEventListener('scroll', () => {
 });
 
 // ============================================================
-// LOG
+// LOG — silent, internal only
 // ============================================================
 function log(msg, type='info') {
-  const el = document.getElementById('log');
-  const line = document.createElement('span');
-  line.className = 'log-' + type;
-  line.style.display = 'block';
-  line.textContent = (type==='ok'?'✓ ':type==='err'?'✗ ':type==='warn'?'! ':'// ') + msg;
-  el.appendChild(line);
-  el.scrollTop = el.scrollHeight;
-  document.getElementById('log-wrap').classList.add('visible');
+  // internal only, no visible terminal
 }
 
 function toast(msg) {
@@ -1633,32 +1606,58 @@ function wrapText(ctx,text,maxWidth) {
 }
 
 // ============================================================
-// PWA
+// PWA — INSTALL PROMPT
 // ============================================================
-if('serviceWorker' in navigator){
-  window.addEventListener('load',async()=>{
-    try{
-      const reg=await navigator.serviceWorker.register('./sw.js',{scope:'./'});
-      setInterval(()=>reg.update(),60000);
-      reg.addEventListener('updatefound',()=>{
-        const nw=reg.installing;
-        nw.addEventListener('statechange',()=>{
-          if(nw.state==='installed'&&navigator.serviceWorker.controller)
+let deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  document.getElementById('install-btn').classList.add('show');
+});
+
+window.addEventListener('appinstalled', () => {
+  deferredInstallPrompt = null;
+  const btn = document.getElementById('install-btn');
+  btn.textContent = '✓ INSTALLED';
+  btn.style.background = 'var(--GR)';
+  setTimeout(() => btn.classList.remove('show'), 2500);
+});
+
+async function installApp() {
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  const { outcome } = await deferredInstallPrompt.userChoice;
+  if (outcome === 'accepted') {
+    deferredInstallPrompt = null;
+    document.getElementById('install-btn').classList.remove('show');
+  }
+}
+
+// ── SERVICE WORKER ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', async () => {
+    try {
+      const reg = await navigator.serviceWorker.register('./sw.js', { scope: './' });
+      setInterval(() => reg.update(), 60000);
+      reg.addEventListener('updatefound', () => {
+        const nw = reg.installing;
+        nw.addEventListener('statechange', () => {
+          if (nw.state === 'installed' && navigator.serviceWorker.controller)
             document.getElementById('update-banner').classList.add('show');
         });
       });
-      log('PWA: Service worker aktif','ok');
-    }catch(err){log('PWA: SW gagal — '+err.message,'warn');}
+    } catch(err) { /* silent */ }
   });
-  let refreshing=false;
-  navigator.serviceWorker.addEventListener('controllerchange',()=>{
-    if(!refreshing){refreshing=true;window.location.reload();}
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!refreshing) { refreshing = true; window.location.reload(); }
   });
 }
 
-async function applyUpdate(){
-  const reg=await navigator.serviceWorker.getRegistration();
-  if(reg&&reg.waiting)reg.waiting.postMessage({type:'SKIP_WAITING'});
+async function applyUpdate() {
+  const reg = await navigator.serviceWorker.getRegistration();
+  if (reg && reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
 }
 </script>
 </body>
