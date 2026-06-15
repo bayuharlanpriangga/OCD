@@ -1,0 +1,1665 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#F5F500">
+<meta name="description" content="Konversi dokumen langsung di browser. PDF, DOCX, XLSX, PPT, MD, CSV, JSON, Images.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="OCD">
+<title>OCD — Orias Converter Document</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij4KICA8cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIGZpbGw9IiMwQTBBMEEiLz4KICA8cmVjdCB4PSIxLjUiIHk9IjEuNSIgd2lkdGg9IjYxIiBoZWlnaHQ9IjYxIiBmaWxsPSJub25lIiBzdHJva2U9IiNGNUY1MDAiIHN0cm9rZS13aWR0aD0iMyIvPgogIDxsaW5lIHgxPSIxMiIgeTE9IjI1IiB4Mj0iNTAiIHkyPSIyNSIgc3Ryb2tlPSIjRjVGNTAwIiBzdHJva2Utd2lkdGg9IjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxwb2x5bGluZSBwb2ludHM9IjQwLDE0IDUyLDI1IDQwLDM2IiBmaWxsPSJub25lIiBzdHJva2U9IiNGNUY1MDAiIHN0cm9rZS13aWR0aD0iNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CiAgPGxpbmUgeDE9IjUyIiB5MT0iNDAiIHgyPSIxNCIgeTI9IjQwIiBzdHJva2U9IiNGNUY1MDAiIHN0cm9rZS13aWR0aD0iNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPHBvbHlsaW5lIHBvaW50cz0iMjQsMjkgMTIsNDAgMjQsNTEiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0Y1RjUwMCIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+:root {
+  --Y: #F5F500;
+  --B: #0A0A0A;
+  --W: #FFFFFF;
+  --G1: #111111;
+  --G2: #1C1C1C;
+  --G3: #2A2A2A;
+  --G4: #3D3D3D;
+  --MU: #666666;
+  --RD: #FF3333;
+  --GR: #00FF88;
+  --FD: 'Archivo Black', sans-serif;
+  --FM: 'IBM Plex Mono', monospace;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--B);
+  color: var(--W);
+  font-family: var(--FM);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width:4px; height:4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--G4); border-radius:2px; }
+
+/* ── HEADER ── */
+#header {
+  position: fixed; top:0; left:0; right:0; z-index:200;
+  height: 56px;
+  display: flex; align-items:center; justify-content:space-between;
+  padding: 0 28px;
+  background: var(--B);
+  border-bottom: 1.5px solid var(--G3);
+  transition: border-color .3s;
+}
+#header.scrolled { border-color: var(--Y); }
+
+.logo {
+  display: flex; align-items:baseline; gap:10px; cursor:default;
+}
+.logo-ocd {
+  font-family: var(--FD);
+  font-size: 20px;
+  color: var(--Y);
+  letter-spacing: 2px;
+}
+.logo-dot { width:6px; height:6px; background:var(--Y); border-radius:50%; margin-bottom:3px; align-self:flex-end; }
+.logo-full {
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--MU);
+  text-transform: uppercase;
+}
+
+.header-right {
+  display: flex; align-items:center; gap:20px;
+}
+
+.hstat {
+  display:flex; flex-direction:column; align-items:flex-end;
+  font-size:9px; letter-spacing:2px; color:var(--MU); text-transform:uppercase;
+}
+.hstat-val {
+  font-family: var(--FD);
+  font-size:15px;
+  color: var(--Y);
+  line-height:1;
+}
+
+.map-btn {
+  background: none;
+  border: 1.5px solid var(--G4);
+  color: var(--MU);
+  font-family: var(--FM);
+  font-size: 10px;
+  letter-spacing: 2px;
+  padding: 7px 14px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all .2s;
+}
+.map-btn:hover { border-color:var(--Y); color:var(--Y); }
+
+/* ── MAIN CONTENT ── */
+#app {
+  padding-top: 56px;
+  min-height: 100vh;
+}
+
+/* ── STEP SECTIONS ── */
+.step {
+  padding: 48px 28px;
+  border-bottom: 1px solid var(--G2);
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity .5s ease, transform .5s ease;
+}
+.step.visible { opacity:1; transform:translateY(0); }
+
+.step-eyebrow {
+  display: flex; align-items:center; gap:12px;
+  margin-bottom: 24px;
+}
+.step-num {
+  font-family: var(--FD);
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--B);
+  background: var(--Y);
+  padding: 3px 8px;
+}
+.step-title {
+  font-family: var(--FD);
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: var(--MU);
+  text-transform: uppercase;
+}
+.step-line {
+  flex:1;
+  height:1px;
+  background: var(--G3);
+}
+
+/* ── STEP 1: DROP ZONE ── */
+#drop-zone {
+  border: 2px dashed var(--G4);
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  gap: 16px;
+  padding: 40px;
+  transition: border-color .2s, background .2s;
+  overflow: hidden;
+}
+#drop-zone::before {
+  content:'';
+  position:absolute; inset:0;
+  background: radial-gradient(ellipse at 50% 120%, rgba(245,245,0,.04) 0%, transparent 70%);
+  pointer-events:none;
+}
+#drop-zone.drag-over {
+  border-color: var(--Y);
+  border-style: solid;
+  background: rgba(245,245,0,.04);
+}
+#drop-zone.drag-over .dz-icon { transform: scale(1.15) translateY(-4px); }
+#drop-zone.has-files { border-color: var(--G3); border-style:solid; min-height:100px; }
+
+.dz-icon {
+  transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+.dz-icon svg { width:52px; height:52px; stroke:var(--Y); opacity:.6; }
+
+.dz-main {
+  font-family: var(--FD);
+  font-size: 22px;
+  color: var(--W);
+  text-align:center;
+  letter-spacing:-0.5px;
+}
+.dz-sub {
+  font-size: 11px;
+  color: var(--MU);
+  text-align:center;
+  line-height:1.8;
+  letter-spacing:.5px;
+}
+.dz-formats {
+  display:flex; flex-wrap:wrap; justify-content:center; gap:6px;
+  max-width:560px;
+}
+.dz-fmt {
+  font-size:9px;
+  letter-spacing:2px;
+  padding:3px 8px;
+  border:1px solid var(--G4);
+  color:var(--G4);
+  text-transform:uppercase;
+  transition: all .15s;
+}
+.dz-fmt.hot { border-color:var(--Y); color:var(--Y); }
+
+.browse-btn {
+  background: var(--Y);
+  color: var(--B);
+  border: none;
+  font-family: var(--FD);
+  font-size: 12px;
+  letter-spacing:2px;
+  padding: 11px 28px;
+  cursor: pointer;
+  text-transform: uppercase;
+  position:relative;
+  transition: transform .15s, box-shadow .15s;
+}
+.browse-btn::after {
+  content:'';
+  position:absolute; inset:0;
+  background: var(--W);
+  opacity:0;
+  transition: opacity .15s;
+}
+.browse-btn:hover { transform:translate(-3px,-3px); box-shadow:3px 3px 0 var(--W); }
+.browse-btn:active { transform:translate(0,0); box-shadow:none; }
+
+#file-input { display:none; }
+
+/* ── STEP 2: FILE QUEUE ── */
+#queue-wrap { display:none; }
+
+.queue-scroll {
+  display:flex; gap:12px;
+  overflow-x:auto; padding-bottom:8px;
+}
+.queue-scroll::-webkit-scrollbar { height:3px; }
+.queue-scroll::-webkit-scrollbar-thumb { background:var(--Y); }
+
+.qi {
+  flex-shrink:0;
+  width:180px;
+  border:1.5px solid var(--G3);
+  padding:14px;
+  position:relative;
+  background:var(--G1);
+  animation: qiIn .3s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes qiIn {
+  from { opacity:0; transform:scale(.85) translateY(8px); }
+  to   { opacity:1; transform:scale(1) translateY(0); }
+}
+.qi:hover { border-color:var(--G4); }
+.qi-badge {
+  display:inline-block;
+  font-size:9px; font-weight:600; letter-spacing:1.5px;
+  background:var(--Y); color:var(--B);
+  padding:2px 7px; margin-bottom:10px;
+}
+.qi-name {
+  font-size:11px; color:var(--W);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  margin-bottom:4px;
+}
+.qi-size { font-size:9px; color:var(--MU); letter-spacing:1px; }
+.qi-rm {
+  position:absolute; top:8px; right:8px;
+  background:none; border:none; color:var(--G4);
+  cursor:pointer; font-size:14px; line-height:1;
+  transition:color .15s;
+}
+.qi-rm:hover { color:var(--RD); }
+
+.queue-meta {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:14px;
+}
+.queue-label {
+  font-size:10px; letter-spacing:2px; color:var(--MU); text-transform:uppercase;
+}
+.clr-btn {
+  background:none; border:none; font-family:var(--FM);
+  font-size:9px; letter-spacing:2px; color:var(--MU); cursor:pointer;
+  text-transform:uppercase;
+  transition:color .15s;
+}
+.clr-btn:hover { color:var(--RD); }
+
+/* ── STEP 3: FORMAT PICKER ── */
+#picker-wrap { display:none; }
+
+.picker-layout {
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  gap:20px;
+  align-items:start;
+}
+
+.picker-col-label {
+  font-size:9px; letter-spacing:3px; color:var(--MU);
+  text-transform:uppercase; margin-bottom:12px;
+}
+
+.fmt-grid {
+  display:flex; flex-wrap:wrap; gap:8px;
+}
+
+.fmt-card {
+  border:1.5px solid var(--G3);
+  background:var(--G1);
+  padding:10px 14px;
+  font-size:11px; letter-spacing:2px;
+  color:var(--MU); text-transform:uppercase;
+  cursor:pointer;
+  transition: all .18s;
+  position:relative; overflow:hidden;
+  animation: fmtIn .3s ease both;
+}
+@keyframes fmtIn {
+  from { opacity:0; transform:scale(.9); }
+  to   { opacity:1; transform:scale(1); }
+}
+.fmt-card::before {
+  content:'';
+  position:absolute; inset:0;
+  background:var(--Y); opacity:0;
+  transition: opacity .18s;
+}
+.fmt-card:hover { border-color:var(--G4); color:var(--W); }
+.fmt-card.from-active {
+  border-color:var(--Y); color:var(--Y);
+  background: rgba(245,245,0,.06);
+}
+.fmt-card.to-active {
+  border-color:var(--GR); color:var(--GR);
+  background: rgba(0,255,136,.06);
+}
+.fmt-card.disabled { opacity:.2; cursor:not-allowed; pointer-events:none; }
+
+/* Arrow column */
+.picker-arrow {
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding-top:32px; gap:6px;
+}
+.arrow-big {
+  font-family:var(--FD);
+  font-size:32px; color:var(--Y);
+  animation: arrowPulse 2s ease-in-out infinite;
+}
+@keyframes arrowPulse {
+  0%,100% { opacity:1; transform:translateX(0) scale(1); }
+  50%      { opacity:.5; transform:translateX(6px) scale(1.1); }
+}
+.arrow-label {
+  font-size:9px; letter-spacing:2px; color:var(--MU); text-transform:uppercase;
+  text-align:center; white-space:nowrap;
+}
+
+/* ── OPTIONS INLINE ── */
+#opts-wrap {
+  margin-top:20px;
+  display:none;
+  animation: fadeUp .3s ease both;
+}
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(8px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.opts-grid { display:flex; gap:12px; flex-wrap:wrap; }
+.opt-item { display:flex; flex-direction:column; gap:6px; }
+.opt-label { font-size:9px; letter-spacing:2px; color:var(--MU); text-transform:uppercase; }
+select, input[type="number"] {
+  background:var(--G2); border:1.5px solid var(--G3);
+  color:var(--W); font-family:var(--FM); font-size:11px;
+  padding:8px 12px; appearance:none; cursor:pointer;
+  transition:border-color .15s;
+}
+select:focus, input[type="number"]:focus { outline:none; border-color:var(--Y); }
+option { background:var(--G2); }
+
+/* ── STICKY BOTTOM BAR ── */
+#bottom-bar {
+  position:fixed; bottom:0; left:0; right:0; z-index:200;
+  background:var(--B);
+  border-top:1.5px solid var(--G3);
+  padding:0 28px;
+  height:72px;
+  display:flex; align-items:center; gap:20px;
+  transform:translateY(100%);
+  transition:transform .4s cubic-bezier(.34,1.56,.64,1), border-color .3s;
+}
+#bottom-bar.visible { transform:translateY(0); }
+#bottom-bar.converting { border-color:var(--Y); }
+
+.bar-left { flex:1; display:flex; flex-direction:column; gap:4px; min-width:0; }
+.bar-summary {
+  font-family:var(--FD);
+  font-size:12px; letter-spacing:1px; color:var(--W);
+}
+.bar-summary span { color:var(--Y); }
+
+.progress-track {
+  height:3px; background:var(--G3); overflow:hidden; width:100%;
+}
+.progress-fill {
+  height:100%; background:var(--Y); width:0%;
+  transition:width .35s ease;
+  position:relative;
+}
+.progress-fill::after {
+  content:'';
+  position:absolute; right:0; top:0; bottom:0; width:20px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.4));
+  animation:shimmer .8s ease-in-out infinite;
+}
+@keyframes shimmer { 0%,100%{opacity:0} 50%{opacity:1} }
+
+#convert-btn {
+  background:var(--Y);
+  color:var(--B);
+  border:none;
+  font-family:var(--FD);
+  font-size:14px;
+  letter-spacing:2px;
+  padding:0 32px;
+  height:46px;
+  cursor:pointer;
+  display:flex; align-items:center; gap:10px;
+  flex-shrink:0;
+  position:relative;
+  transition:transform .15s, box-shadow .15s, background .2s, color .2s;
+  overflow:hidden;
+}
+#convert-btn:disabled { opacity:.35; cursor:not-allowed; transform:none!important; box-shadow:none!important; }
+#convert-btn:not(:disabled):hover { transform:translate(-3px,-3px); box-shadow:3px 3px 0 var(--W); }
+#convert-btn:not(:disabled):active { transform:translate(0,0); box-shadow:none; }
+#convert-btn.processing {
+  background:var(--G2); color:var(--Y);
+  border:1.5px solid var(--Y);
+}
+
+.btn-arrow {
+  font-size:18px;
+  animation:btnArrow 1.2s ease-in-out infinite;
+  display:inline-block;
+}
+@keyframes btnArrow {
+  0%,100%{transform:translateX(0)} 50%{transform:translateX(5px)}
+}
+
+/* Spinner */
+.spinner {
+  width:16px; height:16px;
+  border:2px solid currentColor;
+  border-top-color:transparent;
+  border-radius:50%;
+  animation:spin .6s linear infinite;
+}
+@keyframes spin { to{transform:rotate(360deg)} }
+
+/* ── LOG TERMINAL ── */
+#log-wrap {
+  position:fixed; bottom:72px; right:0;
+  width:320px; max-height:180px;
+  background:var(--G1);
+  border-left:1.5px solid var(--G3);
+  border-top:1.5px solid var(--G3);
+  display:none;
+  overflow:hidden;
+  transform-origin: bottom right;
+  animation:logIn .2s ease;
+  z-index:190;
+}
+@keyframes logIn { from{opacity:0;transform:scale(.97)} to{opacity:1;transform:scale(1)} }
+#log-wrap.visible { display:block; }
+.log-header {
+  padding:8px 12px; border-bottom:1px solid var(--G3);
+  font-size:9px; letter-spacing:2px; color:var(--MU);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.log-dot { width:6px; height:6px; border-radius:50%; background:var(--GR); animation:blink 1s ease infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+#log {
+  padding:10px 12px;
+  font-size:10px; line-height:1.9;
+  max-height:140px; overflow-y:auto;
+  color:var(--MU);
+}
+#log::-webkit-scrollbar { width:2px; }
+#log::-webkit-scrollbar-thumb { background:var(--Y); }
+.log-ok  { color:var(--GR); }
+.log-err { color:var(--RD); }
+.log-warn{ color:#FFAA00; }
+.log-info{ color:var(--MU); }
+
+/* ── RESULTS DRAWER ── */
+#results-drawer {
+  position:fixed; inset:0; z-index:300;
+  display:none;
+  align-items:flex-end;
+}
+#results-drawer.open { display:flex; }
+
+.drawer-backdrop {
+  position:absolute; inset:0;
+  background:rgba(0,0,0,.7);
+  animation:bdfIn .25s ease;
+}
+@keyframes bdfIn { from{opacity:0} to{opacity:1} }
+
+.drawer-panel {
+  position:relative;
+  width:100%; max-height:70vh;
+  background:var(--G1);
+  border-top:2px solid var(--Y);
+  padding:24px 28px;
+  overflow-y:auto;
+  animation:drawerIn .35s cubic-bezier(.34,1.56,.64,1);
+  z-index:1;
+}
+@keyframes drawerIn {
+  from{transform:translateY(100%)} to{transform:translateY(0)}
+}
+
+.drawer-handle {
+  width:40px; height:4px;
+  background:var(--G4); border-radius:2px;
+  margin:0 auto 20px;
+}
+.drawer-title {
+  font-family:var(--FD);
+  font-size:18px; color:var(--Y);
+  margin-bottom:4px; letter-spacing:-0.5px;
+}
+.drawer-sub {
+  font-size:10px; color:var(--MU); letter-spacing:2px;
+  margin-bottom:20px; text-transform:uppercase;
+}
+.drawer-close {
+  position:absolute; top:20px; right:24px;
+  background:none; border:1.5px solid var(--G3);
+  color:var(--MU); font-family:var(--FM);
+  font-size:10px; letter-spacing:2px;
+  padding:6px 12px; cursor:pointer;
+  text-transform:uppercase; transition:all .15s;
+}
+.drawer-close:hover { border-color:var(--RD); color:var(--RD); }
+
+.results-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:10px;
+}
+.res-item {
+  border:1.5px solid var(--GR);
+  background:rgba(0,255,136,.04);
+  padding:14px;
+  display:flex; align-items:center; gap:12px;
+  animation:resIn .4s cubic-bezier(.34,1.56,.64,1) both;
+  transition:background .15s;
+  text-decoration:none;
+}
+.res-item:hover { background:rgba(0,255,136,.1); }
+@keyframes resIn {
+  from{opacity:0;transform:scale(.9) translateY(10px)}
+  to  {opacity:1;transform:scale(1) translateY(0)}
+}
+.res-badge {
+  font-size:9px; font-weight:600; letter-spacing:1.5px;
+  background:var(--GR); color:var(--B);
+  padding:3px 7px; flex-shrink:0;
+}
+.res-name {
+  flex:1; font-size:11px; color:var(--W);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.res-dl {
+  font-size:10px; color:var(--GR); letter-spacing:1px; flex-shrink:0;
+}
+
+/* ── CONVERSION MAP DRAWER ── */
+#map-drawer {
+  position:fixed; inset:0; z-index:400;
+  display:none; align-items:flex-end;
+}
+#map-drawer.open { display:flex; }
+
+.map-panel {
+  position:relative; z-index:1;
+  width:100%; max-height:80vh;
+  background:var(--G1);
+  border-top:2px solid var(--Y);
+  padding:28px;
+  overflow-y:auto;
+  animation:drawerIn .35s cubic-bezier(.34,1.56,.64,1);
+}
+.map-close {
+  position:absolute; top:20px; right:24px;
+  background:none; border:1.5px solid var(--G3);
+  color:var(--MU); font-family:var(--FM);
+  font-size:10px; letter-spacing:2px;
+  padding:6px 12px; cursor:pointer;
+  text-transform:uppercase; transition:all .15s;
+}
+.map-close:hover { border-color:var(--Y); color:var(--Y); }
+.map-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:12px; margin-top:20px;
+}
+.map-row {
+  background:var(--G2); padding:14px;
+  display:flex; align-items:center; gap:10px;
+  border:1px solid var(--G3);
+}
+.map-from {
+  font-family:var(--FD); font-size:13px; color:var(--Y);
+  width:44px; flex-shrink:0;
+}
+.map-arrow-sm { color:var(--MU); font-size:12px; flex-shrink:0; }
+.map-targets { display:flex; gap:5px; flex-wrap:wrap; }
+.map-to {
+  font-size:9px; letter-spacing:1.5px;
+  border:1px solid var(--G3); color:var(--MU);
+  padding:2px 7px; text-transform:uppercase;
+  cursor:pointer; transition:all .12s;
+}
+.map-to:hover { border-color:var(--Y); color:var(--Y); }
+
+/* ── TOAST ── */
+#toast {
+  position:fixed; bottom:88px; left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:var(--Y); color:var(--B);
+  font-family:var(--FD); font-size:12px; letter-spacing:1px;
+  padding:10px 24px;
+  opacity:0; pointer-events:none;
+  transition:opacity .25s, transform .25s;
+  z-index:9999; white-space:nowrap;
+}
+#toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ── PWA UPDATE BANNER ── */
+#update-banner {
+  position:fixed; top:56px; left:0; right:0; z-index:500;
+  background:var(--Y); color:var(--B);
+  font-family:var(--FD); font-size:12px; letter-spacing:1px;
+  padding:12px 28px;
+  display:none; align-items:center; justify-content:space-between;
+  border-bottom:2px solid var(--B);
+}
+#update-banner.show { display:flex; }
+.upd-btn {
+  background:var(--B); color:var(--Y); border:none;
+  font-family:var(--FD); font-size:11px; letter-spacing:1px;
+  padding:6px 16px; cursor:pointer;
+}
+
+/* ── RESPONSIVE ── */
+@media(max-width:600px) {
+  .picker-layout { grid-template-columns:1fr; }
+  .picker-arrow { flex-direction:row; padding-top:0; }
+  .arrow-big { font-size:24px; }
+  .results-grid { grid-template-columns:1fr; }
+  .map-grid { grid-template-columns:1fr; }
+  #log-wrap { width:100%; border-left:none; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header id="header">
+  <div class="logo">
+    <span class="logo-ocd">OCD</span>
+    <div class="logo-dot"></div>
+    <span class="logo-full">Orias Converter Document</span>
+  </div>
+  <div class="header-right">
+    <div class="hstat">
+      <span class="hstat-val" id="stat-files">0</span>
+      <span>files</span>
+    </div>
+    <div class="hstat">
+      <span class="hstat-val" id="stat-converted">0</span>
+      <span>converted</span>
+    </div>
+    <button class="map-btn" onclick="openMap()">⇄ FORMAT MAP</button>
+  </div>
+</header>
+
+<!-- UPDATE BANNER -->
+<div id="update-banner">
+  <span>⚡ Versi baru tersedia!</span>
+  <button class="upd-btn" onclick="applyUpdate()">UPDATE SEKARANG</button>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <!-- STEP 1: UPLOAD -->
+  <section class="step" id="step-1">
+    <div class="step-eyebrow">
+      <span class="step-num">01</span>
+      <span class="step-title">Upload File</span>
+      <div class="step-line"></div>
+    </div>
+
+    <div id="drop-zone">
+      <div class="dz-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+      </div>
+      <div class="dz-main">DROP FILE DI SINI</div>
+      <div class="dz-sub">atau klik tombol di bawah untuk browse</div>
+      <div class="dz-formats">
+        <span class="dz-fmt hot">PDF</span><span class="dz-fmt hot">DOCX</span><span class="dz-fmt hot">XLSX</span>
+        <span class="dz-fmt hot">PPTX</span><span class="dz-fmt hot">MD</span><span class="dz-fmt">TXT</span>
+        <span class="dz-fmt">CSV</span><span class="dz-fmt">JSON</span><span class="dz-fmt">PNG</span>
+        <span class="dz-fmt">JPG</span><span class="dz-fmt">WEBP</span><span class="dz-fmt">HTML</span>
+      </div>
+      <button class="browse-btn" onclick="document.getElementById('file-input').click()">BROWSE FILES</button>
+      <input type="file" id="file-input" multiple
+        accept=".pdf,.docx,.xlsx,.xls,.pptx,.ppt,.md,.txt,.csv,.json,.png,.jpg,.jpeg,.webp,.gif,.bmp,.html">
+    </div>
+  </section>
+
+  <!-- STEP 2: QUEUE -->
+  <section class="step" id="step-2" style="padding-top:32px;padding-bottom:32px;">
+    <div id="queue-wrap">
+      <div class="queue-meta">
+        <div class="step-eyebrow" style="margin-bottom:0">
+          <span class="step-num">02</span>
+          <span class="step-title">File Queue (<span id="queue-count">0</span>)</span>
+        </div>
+        <button class="clr-btn" onclick="clearQueue()">CLEAR ALL</button>
+      </div>
+      <div class="queue-scroll" id="file-queue"></div>
+    </div>
+  </section>
+
+  <!-- STEP 3: FORMAT PICKER -->
+  <section class="step" id="step-3">
+    <div id="picker-wrap">
+      <div class="step-eyebrow">
+        <span class="step-num">03</span>
+        <span class="step-title">Pilih Format Output</span>
+        <div class="step-line"></div>
+      </div>
+
+      <div class="picker-layout">
+        <div>
+          <div class="picker-col-label">Format Asal</div>
+          <div class="fmt-grid" id="from-grid"></div>
+        </div>
+        <div class="picker-arrow">
+          <div class="arrow-big">→</div>
+          <div class="arrow-label">convert<br>ke</div>
+        </div>
+        <div>
+          <div class="picker-col-label">Format Tujuan</div>
+          <div class="fmt-grid" id="to-grid"></div>
+        </div>
+      </div>
+
+      <div id="opts-wrap">
+        <div class="step-eyebrow" style="margin-bottom:12px">
+          <span class="step-num" style="background:var(--G3);color:var(--MU)">OPT</span>
+          <span class="step-title">Options</span>
+          <div class="step-line"></div>
+        </div>
+        <div class="opts-grid" id="options-container"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- spacer for bottom bar -->
+  <div style="height:90px"></div>
+</div>
+
+<!-- STICKY BOTTOM BAR -->
+<div id="bottom-bar">
+  <div class="bar-left">
+    <div class="bar-summary" id="bar-summary">Pilih file dan format dulu</div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-bar"></div>
+    </div>
+  </div>
+  <button id="convert-btn" disabled onclick="startConvert()">
+    <span id="btn-label">CONVERT</span>
+    <span class="btn-arrow" id="btn-arrow">→</span>
+  </button>
+</div>
+
+<!-- LOG TERMINAL -->
+<div id="log-wrap">
+  <div class="log-header">
+    <span>TERMINAL LOG</span>
+    <div class="log-dot"></div>
+  </div>
+  <div id="log"><span class="log-info">// Siap.</span></div>
+</div>
+
+<!-- RESULTS DRAWER -->
+<div id="results-drawer">
+  <div class="drawer-backdrop" onclick="closeResults()"></div>
+  <div class="drawer-panel">
+    <div class="drawer-handle"></div>
+    <button class="drawer-close" onclick="closeResults()">TUTUP ×</button>
+    <div class="drawer-title">Hasil Konversi</div>
+    <div class="drawer-sub" id="results-count-label">0 file siap download</div>
+    <div class="results-grid" id="results-list"></div>
+  </div>
+</div>
+
+<!-- FORMAT MAP DRAWER -->
+<div id="map-drawer">
+  <div class="drawer-backdrop" onclick="closeMap()"></div>
+  <div class="map-panel">
+    <div class="drawer-handle"></div>
+    <button class="map-close" onclick="closeMap()">TUTUP ×</button>
+    <div class="drawer-title">Format Map</div>
+    <div class="drawer-sub">Klik format tujuan untuk langsung pilih</div>
+    <div class="map-grid" id="conv-matrix"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const state = {
+  files: [],
+  results: [],
+  converting: false,
+  convertedCount: 0,
+  selectedFrom: null,
+  selectedTo: null
+};
+
+// ============================================================
+// CONVERSION MAP
+// ============================================================
+const CONVERSIONS = {
+  pdf:  ['png','jpg','webp','html','txt'],
+  docx: ['pdf','html','txt','md'],
+  xlsx: ['csv','json','html','txt'],
+  xls:  ['csv','json','html','txt'],
+  pptx: ['png','pdf','txt'],
+  ppt:  ['txt'],
+  md:   ['html','txt','pdf'],
+  txt:  ['pdf','md','html','json'],
+  csv:  ['json','xlsx','html','txt'],
+  json: ['csv','txt','html'],
+  png:  ['jpg','webp','pdf','bmp'],
+  jpg:  ['png','webp','pdf','bmp'],
+  jpeg: ['png','webp','pdf','bmp'],
+  webp: ['png','jpg','pdf'],
+  gif:  ['png','jpg','webp'],
+  bmp:  ['png','jpg','webp','pdf'],
+  html: ['pdf','txt','md']
+};
+
+// ============================================================
+// UTILS
+// ============================================================
+const ext  = n => n.split('.').pop().toLowerCase();
+const base = n => n.replace(/\.[^.]+$/,'');
+function fmtSize(b) {
+  if(b<1024) return b+' B';
+  if(b<1048576) return (b/1024).toFixed(1)+' KB';
+  return (b/1048576).toFixed(2)+' MB';
+}
+
+// ============================================================
+// SCROLL OBSERVER — animate steps in
+// ============================================================
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold:.1 });
+document.querySelectorAll('.step').forEach(s => observer.observe(s));
+
+// Header scroll style
+window.addEventListener('scroll', () => {
+  document.getElementById('header').classList.toggle('scrolled', window.scrollY > 10);
+});
+
+// ============================================================
+// LOG
+// ============================================================
+function log(msg, type='info') {
+  const el = document.getElementById('log');
+  const line = document.createElement('span');
+  line.className = 'log-' + type;
+  line.style.display = 'block';
+  line.textContent = (type==='ok'?'✓ ':type==='err'?'✗ ':type==='warn'?'! ':'// ') + msg;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+  document.getElementById('log-wrap').classList.add('visible');
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+function setProgress(pct) {
+  document.getElementById('progress-bar').style.width = pct + '%';
+}
+
+// ============================================================
+// BOTTOM BAR
+// ============================================================
+function updateBarSummary() {
+  const el = document.getElementById('bar-summary');
+  const f = state.files.length;
+  const to = state.selectedTo;
+  if (!f) { el.innerHTML = 'Pilih file dan format dulu'; return; }
+  if (!to) { el.innerHTML = `<span>${f}</span> file terpilih — pilih format tujuan`; return; }
+  el.innerHTML = `<span>${f}</span> file → <span>.${to.toUpperCase()}</span>`;
+}
+
+function showBottomBar() {
+  document.getElementById('bottom-bar').classList.add('visible');
+}
+
+function validateConvert() {
+  const btn = document.getElementById('convert-btn');
+  btn.disabled = !(state.files.length && state.selectedTo && !state.converting);
+  updateBarSummary();
+}
+
+// ============================================================
+// FORMAT PICKER
+// ============================================================
+function buildFromGrid() {
+  const grid = document.getElementById('from-grid');
+  const exts = [...new Set(state.files.map(f => ext(f.name)))];
+  grid.innerHTML = '';
+  exts.forEach((e, i) => {
+    const card = document.createElement('div');
+    card.className = 'fmt-card' + (state.selectedFrom === e ? ' from-active' : '');
+    card.textContent = e.toUpperCase();
+    card.style.animationDelay = (i * 40) + 'ms';
+    card.dataset.fmt = e;
+    card.onclick = () => selectFrom(e);
+    grid.appendChild(card);
+  });
+  if (exts.length === 1) selectFrom(exts[0]);
+}
+
+function selectFrom(e) {
+  state.selectedFrom = e;
+  state.selectedTo = null;
+  document.querySelectorAll('#from-grid .fmt-card').forEach(c => {
+    c.classList.toggle('from-active', c.dataset.fmt === e);
+  });
+  buildToGrid(e);
+}
+
+function buildToGrid(fromExt) {
+  const grid = document.getElementById('to-grid');
+  const targets = CONVERSIONS[fromExt] || [];
+  grid.innerHTML = '';
+  targets.forEach((t, i) => {
+    const card = document.createElement('div');
+    card.className = 'fmt-card';
+    card.textContent = t.toUpperCase();
+    card.style.animationDelay = (i * 50) + 'ms';
+    card.dataset.fmt = t;
+    card.onclick = () => selectTo(t);
+    grid.appendChild(card);
+  });
+}
+
+function selectTo(t) {
+  state.selectedTo = t;
+  document.querySelectorAll('#to-grid .fmt-card').forEach(c => {
+    c.classList.toggle('to-active', c.dataset.fmt === t);
+  });
+  showOptions(t);
+  validateConvert();
+}
+
+function showOptions(fmt) {
+  const wrap = document.getElementById('opts-wrap');
+  const cont = document.getElementById('options-container');
+  wrap.style.display = 'block';
+  let html = '';
+  if (fmt === 'pdf') {
+    html = `
+      <div class="opt-item">
+        <div class="opt-label">Page Size</div>
+        <select id="opt-pagesize"><option value="a4">A4</option><option value="letter">Letter</option><option value="a3">A3</option></select>
+      </div>
+      <div class="opt-item">
+        <div class="opt-label">Orientation</div>
+        <select id="opt-orient"><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select>
+      </div>`;
+  } else if (['png','jpg','webp','bmp'].includes(fmt)) {
+    html = `
+      <div class="opt-item">
+        <div class="opt-label">Quality (1–100)</div>
+        <input type="number" id="opt-quality" value="92" min="1" max="100" style="width:90px">
+      </div>
+      <div class="opt-item">
+        <div class="opt-label">Scale (PDF→Image)</div>
+        <select id="opt-scale">
+          <option value="1">1x — 72dpi</option>
+          <option value="2" selected>2x — 144dpi</option>
+          <option value="3">3x — 216dpi</option>
+        </select>
+      </div>`;
+  } else if (fmt === 'json') {
+    html = `<div class="opt-item"><div class="opt-label">JSON Format</div>
+      <select id="opt-json-fmt"><option value="array">Array of Objects</option><option value="raw">Raw Array</option></select></div>`;
+  } else if (fmt === 'csv') {
+    html = `<div class="opt-item"><div class="opt-label">Delimiter</div>
+      <select id="opt-delim"><option value=",">Comma (,)</option><option value=";">Semicolon (;)</option><option value="&#9;">Tab</option></select></div>`;
+  } else {
+    wrap.style.display = 'none';
+    return;
+  }
+  cont.innerHTML = html;
+}
+
+// ============================================================
+// FILE MANAGEMENT
+// ============================================================
+function addFiles(fileList) {
+  Array.from(fileList).forEach(f => {
+    const e = ext(f.name);
+    if (!CONVERSIONS[e]) { log(`Format .${e} belum didukung: ${f.name}`, 'warn'); return; }
+    if (state.files.find(x => x.name === f.name && x.size === f.size)) return;
+    state.files.push(f);
+  });
+  renderQueue();
+  buildFromGrid();
+  updateStats();
+  validateConvert();
+  if (state.files.length) {
+    document.getElementById('queue-wrap').style.display = 'block';
+    document.getElementById('picker-wrap').style.display = 'block';
+    showBottomBar();
+    document.getElementById('drop-zone').classList.add('has-files');
+    setTimeout(()=>{
+      document.getElementById('step-2').scrollIntoView({behavior:'smooth',block:'nearest'});
+    }, 150);
+  }
+}
+
+function renderQueue() {
+  const el = document.getElementById('file-queue');
+  document.getElementById('queue-count').textContent = state.files.length;
+  el.innerHTML = '';
+  state.files.forEach((f, i) => {
+    const qi = document.createElement('div');
+    qi.className = 'qi';
+    qi.style.animationDelay = (i * 30) + 'ms';
+    qi.innerHTML = `
+      <div class="qi-badge">${ext(f.name).toUpperCase()}</div>
+      <div class="qi-name" title="${f.name}">${f.name}</div>
+      <div class="qi-size">${fmtSize(f.size)}</div>
+      <button class="qi-rm" onclick="removeFile(${i})">×</button>`;
+    el.appendChild(qi);
+  });
+}
+
+function removeFile(i) {
+  state.files.splice(i, 1);
+  state.selectedFrom = null;
+  state.selectedTo = null;
+  renderQueue();
+  buildFromGrid();
+  document.getElementById('to-grid').innerHTML = '';
+  document.getElementById('opts-wrap').style.display = 'none';
+  updateStats();
+  validateConvert();
+  if (!state.files.length) {
+    document.getElementById('queue-wrap').style.display = 'none';
+    document.getElementById('picker-wrap').style.display = 'none';
+    document.getElementById('drop-zone').classList.remove('has-files');
+    document.getElementById('bottom-bar').classList.remove('visible');
+  }
+}
+
+function clearQueue() {
+  state.files = [];
+  state.selectedFrom = null;
+  state.selectedTo = null;
+  renderQueue();
+  document.getElementById('queue-wrap').style.display = 'none';
+  document.getElementById('picker-wrap').style.display = 'none';
+  document.getElementById('opts-wrap').style.display = 'none';
+  document.getElementById('drop-zone').classList.remove('has-files');
+  document.getElementById('bottom-bar').classList.remove('visible');
+  updateStats();
+  validateConvert();
+}
+
+function updateStats() {
+  document.getElementById('stat-files').textContent = state.files.length;
+  document.getElementById('stat-converted').textContent = state.convertedCount;
+}
+
+// ============================================================
+// DRAG & DROP
+// ============================================================
+const dz = document.getElementById('drop-zone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+dz.addEventListener('drop', e => {
+  e.preventDefault();
+  dz.classList.remove('drag-over');
+  addFiles(e.dataTransfer.files);
+});
+dz.addEventListener('click', e => {
+  if (e.target.tagName !== 'BUTTON') document.getElementById('file-input').click();
+});
+document.getElementById('file-input').addEventListener('change', e => addFiles(e.target.files));
+
+// ============================================================
+// RESULTS
+// ============================================================
+function addResult(filename, blob, mimeType) {
+  const url = URL.createObjectURL(blob);
+  state.results.push({ filename, url });
+  state.convertedCount++;
+  updateStats();
+
+  const list = document.getElementById('results-list');
+  const e = filename.split('.').pop().toUpperCase();
+  const item = document.createElement('a');
+  item.className = 'res-item';
+  item.href = url;
+  item.download = filename;
+  item.style.animationDelay = (state.results.length * 60) + 'ms';
+  item.innerHTML = `
+    <span class="res-badge">${e}</span>
+    <span class="res-name" title="${filename}">${filename}</span>
+    <span class="res-dl">↓ UNDUH</span>`;
+  list.prepend(item);
+
+  document.getElementById('results-count-label').textContent =
+    `${state.results.length} file siap download`;
+}
+
+function openResults() {
+  document.getElementById('results-drawer').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeResults() {
+  document.getElementById('results-drawer').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function clearResults() {
+  state.results.forEach(r => URL.revokeObjectURL(r.url));
+  state.results = [];
+  document.getElementById('results-list').innerHTML = '';
+  closeResults();
+}
+
+// ============================================================
+// FORMAT MAP DRAWER
+// ============================================================
+function openMap() {
+  const grid = document.getElementById('conv-matrix');
+  grid.innerHTML = '';
+  Object.entries(CONVERSIONS).forEach(([from, tos]) => {
+    const row = document.createElement('div');
+    row.className = 'map-row';
+    row.innerHTML = `
+      <span class="map-from">${from.toUpperCase()}</span>
+      <span class="map-arrow-sm">→</span>
+      <div class="map-targets">
+        ${tos.map(t => `<span class="map-to" onclick="pickFromMap('${from}','${t}')">${t.toUpperCase()}</span>`).join('')}
+      </div>`;
+    grid.appendChild(row);
+  });
+  document.getElementById('map-drawer').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeMap() {
+  document.getElementById('map-drawer').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function pickFromMap(from, to) {
+  closeMap();
+  // If from is in current files, use it; otherwise just set selectedTo
+  const fileExts = [...new Set(state.files.map(f => ext(f.name)))];
+  if (fileExts.includes(from)) {
+    selectFrom(from);
+    setTimeout(() => selectTo(to), 100);
+  } else {
+    toast(`Upload file .${from.toUpperCase()} dulu ya!`);
+  }
+  if (state.files.length) {
+    document.getElementById('step-3').scrollIntoView({behavior:'smooth'});
+  }
+}
+
+// ============================================================
+// CONVERT
+// ============================================================
+async function startConvert() {
+  const targetFmt = state.selectedTo;
+  if (!targetFmt || !state.files.length) return;
+
+  state.converting = true;
+  const btn = document.getElementById('convert-btn');
+  btn.disabled = true;
+  btn.classList.add('processing');
+  document.getElementById('btn-label').textContent = 'CONVERTING';
+  document.getElementById('btn-arrow').style.display = 'none';
+  const sp = document.createElement('div'); sp.className='spinner'; btn.appendChild(sp);
+  document.getElementById('bottom-bar').classList.add('converting');
+
+  setProgress(0);
+  log(`Mulai: ${state.files.length} file → .${targetFmt.toUpperCase()}`);
+
+  // Filter files by selectedFrom if set
+  const filesToConvert = state.selectedFrom
+    ? state.files.filter(f => ext(f.name) === state.selectedFrom)
+    : state.files;
+
+  let done = 0;
+  for (const file of filesToConvert) {
+    const srcExt = ext(file.name);
+    log(`Proses: ${file.name}`);
+    try {
+      await convertFile(file, srcExt, targetFmt);
+      done++;
+      setProgress(Math.round(done / filesToConvert.length * 100));
+    } catch(err) {
+      log(`Gagal: ${file.name} — ${err.message}`, 'err');
+    }
+  }
+
+  log(`Selesai. ${done}/${filesToConvert.length} berhasil.`, 'ok');
+  toast(`✓ ${done} file dikonversi!`);
+
+  state.converting = false;
+  btn.classList.remove('processing');
+  document.getElementById('bottom-bar').classList.remove('converting');
+  document.getElementById('btn-label').textContent = 'CONVERT';
+  document.getElementById('btn-arrow').style.display = '';
+  sp.remove();
+  validateConvert();
+
+  if (done > 0) setTimeout(openResults, 400);
+}
+
+async function convertFile(file, srcExt, tgtFmt) {
+  if (['png','jpg','jpeg','webp','gif','bmp'].includes(srcExt) && ['png','jpg','webp','bmp'].includes(tgtFmt))
+    return imageToImage(file, srcExt, tgtFmt);
+  if (['png','jpg','jpeg','webp','bmp'].includes(srcExt) && tgtFmt === 'pdf')
+    return imageToPdf(file);
+  if (srcExt === 'pdf' && ['png','jpg','webp'].includes(tgtFmt))
+    return pdfToImages(file, tgtFmt);
+  if (srcExt === 'pdf' && tgtFmt === 'html') return pdfToHtml(file);
+  if (srcExt === 'pdf' && tgtFmt === 'txt')  return pdfToText(file);
+  if (srcExt === 'docx') return docxConvert(file, tgtFmt);
+  if (['xlsx','xls'].includes(srcExt)) return xlsxConvert(file, tgtFmt);
+  if (srcExt === 'csv')  return csvConvert(file, tgtFmt);
+  if (srcExt === 'json') return jsonConvert(file, tgtFmt);
+  if (srcExt === 'md')   return mdConvert(file, tgtFmt);
+  if (srcExt === 'txt')  return txtConvert(file, tgtFmt);
+  if (srcExt === 'html') return htmlConvert(file, tgtFmt);
+  if (srcExt === 'pptx' && tgtFmt === 'txt') return pptxToText(file);
+  if (srcExt === 'pptx' && ['png','pdf'].includes(tgtFmt)) return pptxToImages(file, tgtFmt);
+  throw new Error(`Kombinasi ${srcExt}→${tgtFmt} belum didukung`);
+}
+
+// ============================================================
+// CONVERTERS (sama persis dari versi lama)
+// ============================================================
+async function imageToImage(file, srcExt, tgtFmt) {
+  const quality = parseInt(document.getElementById('opt-quality')?.value||92)/100;
+  const bitmap = await createImageBitmap(file);
+  const canvas = document.createElement('canvas');
+  canvas.width=bitmap.width; canvas.height=bitmap.height;
+  const ctx=canvas.getContext('2d');
+  if(tgtFmt==='jpg'||tgtFmt==='bmp'){ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);}
+  ctx.drawImage(bitmap,0,0);
+  const mime=tgtFmt==='jpg'?'image/jpeg':tgtFmt==='webp'?'image/webp':tgtFmt==='bmp'?'image/bmp':'image/png';
+  const blob=await new Promise(res=>canvas.toBlob(res,mime,quality));
+  addResult(base(file.name)+'.'+tgtFmt,blob,mime);
+  log(`${file.name} → ${tgtFmt.toUpperCase()} OK`,'ok');
+}
+
+async function imageToPdf(file) {
+  const pageSize=document.getElementById('opt-pagesize')?.value||'a4';
+  const orient=document.getElementById('opt-orient')?.value||'portrait';
+  const {jsPDF}=window.jspdf;
+  const bitmap=await createImageBitmap(file);
+  const canvas=document.createElement('canvas');
+  canvas.width=bitmap.width;canvas.height=bitmap.height;
+  canvas.getContext('2d').drawImage(bitmap,0,0);
+  const dataUrl=canvas.toDataURL('image/jpeg',0.92);
+  const doc=new jsPDF({orientation:orient,format:pageSize,unit:'mm'});
+  const[pw,ph]=orient==='portrait'
+    ?pageSize==='a4'?[210,297]:pageSize==='a3'?[297,420]:[215.9,279.4]
+    :pageSize==='a4'?[297,210]:pageSize==='a3'?[420,297]:[279.4,215.9];
+  const ratio=Math.min(pw/bitmap.width*3.7795,ph/bitmap.height*3.7795);
+  const w=bitmap.width*ratio/3.7795,h=bitmap.height*ratio/3.7795;
+  doc.addImage(dataUrl,'JPEG',(pw-w)/2,(ph-h)/2,w,h);
+  addResult(base(file.name)+'.pdf',doc.output('blob'),'application/pdf');
+  log(`${file.name} → PDF OK`,'ok');
+}
+
+async function pdfToImages(file,fmt) {
+  if(typeof pdfjsLib==='undefined') throw new Error('PDF.js belum loaded');
+  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const scale=parseInt(document.getElementById('opt-scale')?.value||2);
+  const quality=parseInt(document.getElementById('opt-quality')?.value||92)/100;
+  const buf=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+  for(let i=1;i<=pdf.numPages;i++){
+    const page=await pdf.getPage(i);
+    const vp=page.getViewport({scale});
+    const canvas=document.createElement('canvas');
+    canvas.width=vp.width;canvas.height=vp.height;
+    await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
+    const mime=fmt==='jpg'?'image/jpeg':fmt==='webp'?'image/webp':'image/png';
+    const blob=await new Promise(res=>canvas.toBlob(res,mime,quality));
+    const suffix=pdf.numPages>1?`_p${i}`:'';
+    addResult(`${base(file.name)}${suffix}.${fmt}`,blob,mime);
+    log(`  → Halaman ${i}/${pdf.numPages} OK`,'ok');
+  }
+}
+
+async function pdfToHtml(file) {
+  if(typeof pdfjsLib==='undefined') throw new Error('PDF.js belum loaded');
+  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const buf=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+  let html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${file.name}</title><style>body{font-family:sans-serif;max-width:800px;margin:0 auto;padding:2rem}p{margin:.5em 0}</style></head><body>`;
+  for(let i=1;i<=pdf.numPages;i++){
+    const page=await pdf.getPage(i);
+    const content=await page.getTextContent();
+    html+=`<h2>Halaman ${i}</h2>`;
+    let lastY=null;
+    content.items.forEach(item=>{
+      if(lastY!==null&&Math.abs(item.transform[5]-lastY)>5)html+='<br>';
+      html+=item.str;lastY=item.transform[5];
+    });
+    html+='<hr>';
+  }
+  html+='</body></html>';
+  addResult(base(file.name)+'.html',new Blob([html],{type:'text/html'}),'text/html');
+  log(`${file.name} → HTML OK`,'ok');
+}
+
+async function pdfToText(file) {
+  if(typeof pdfjsLib==='undefined') throw new Error('PDF.js belum loaded');
+  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const buf=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+  let text='';
+  for(let i=1;i<=pdf.numPages;i++){
+    const page=await pdf.getPage(i);
+    const content=await page.getTextContent();
+    text+=`=== Halaman ${i} ===\n`;
+    content.items.forEach(item=>{text+=item.str+(item.hasEOL?'\n':'');});
+    text+='\n\n';
+  }
+  addResult(base(file.name)+'.txt',new Blob([text],{type:'text/plain'}),'text/plain');
+  log(`${file.name} → TXT OK`,'ok');
+}
+
+async function docxConvert(file,tgt) {
+  const buf=await file.arrayBuffer();
+  if(tgt==='html'){
+    const res=await mammoth.convertToHtml({arrayBuffer:buf});
+    const full=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${file.name}</title><style>body{font-family:sans-serif;max-width:800px;margin:0 auto;padding:2rem}img{max-width:100%}</style></head><body>${res.value}</body></html>`;
+    addResult(base(file.name)+'.html',new Blob([full],{type:'text/html'}),'text/html');
+  }else if(tgt==='txt'){
+    const res=await mammoth.extractRawText({arrayBuffer:buf});
+    addResult(base(file.name)+'.txt',new Blob([res.value],{type:'text/plain'}),'text/plain');
+  }else if(tgt==='md'){
+    const res=await mammoth.convertToMarkdown({arrayBuffer:buf});
+    addResult(base(file.name)+'.md',new Blob([res.value],{type:'text/plain'}),'text/plain');
+  }else if(tgt==='pdf'){
+    const res=await mammoth.extractRawText({arrayBuffer:buf});
+    const{jsPDF}=window.jspdf;
+    const pageSize=document.getElementById('opt-pagesize')?.value||'a4';
+    const orient=document.getElementById('opt-orient')?.value||'portrait';
+    const doc=new jsPDF({orientation:orient,format:pageSize});
+    const lines=doc.splitTextToSize(res.value,180);let y=20;
+    lines.forEach(line=>{if(y>280){doc.addPage();y=20;}doc.setFontSize(11);doc.text(line,15,y);y+=6;});
+    addResult(base(file.name)+'.pdf',doc.output('blob'),'application/pdf');
+  }
+  log(`${file.name} → ${tgt.toUpperCase()} OK`,'ok');
+}
+
+async function xlsxConvert(file,tgt) {
+  const buf=await file.arrayBuffer();
+  const wb=XLSX.read(buf,{type:'array'});
+  const ws=wb.Sheets[wb.SheetNames[0]];
+  if(tgt==='csv'){
+    const delim=document.getElementById('opt-delim')?.value||',';
+    addResult(base(file.name)+'.csv',new Blob([XLSX.utils.sheet_to_csv(ws,{FS:delim})],{type:'text/csv'}),'text/csv');
+  }else if(tgt==='json'){
+    const fmt=document.getElementById('opt-json-fmt')?.value||'array';
+    const data=fmt==='array'?XLSX.utils.sheet_to_json(ws):XLSX.utils.sheet_to_json(ws,{header:1});
+    addResult(base(file.name)+'.json',new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),'application/json');
+  }else if(tgt==='html'){
+    const html=XLSX.utils.sheet_to_html(ws);
+    const full=`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>table{border-collapse:collapse;width:100%}td,th{border:1px solid #ccc;padding:6px 10px}th{background:#f0f0f0}</style></head><body>${html}</body></html>`;
+    addResult(base(file.name)+'.html',new Blob([full],{type:'text/html'}),'text/html');
+  }else if(tgt==='txt'){
+    addResult(base(file.name)+'.txt',new Blob([XLSX.utils.sheet_to_csv(ws)],{type:'text/plain'}),'text/plain');
+  }
+  log(`${file.name} → ${tgt.toUpperCase()} OK`,'ok');
+}
+
+async function csvConvert(file,tgt) {
+  const text=await file.text();
+  if(tgt==='json'){
+    const wb=XLSX.read(text,{type:'string'});const ws=wb.Sheets[wb.SheetNames[0]];
+    const fmt=document.getElementById('opt-json-fmt')?.value||'array';
+    const data=fmt==='array'?XLSX.utils.sheet_to_json(ws):XLSX.utils.sheet_to_json(ws,{header:1});
+    addResult(base(file.name)+'.json',new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),'application/json');
+  }else if(tgt==='xlsx'){
+    const wb=XLSX.read(text,{type:'string'});
+    const out=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+    addResult(base(file.name)+'.xlsx',new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  }else if(tgt==='html'){
+    const wb=XLSX.read(text,{type:'string'});const ws=wb.Sheets[wb.SheetNames[0]];
+    const html=XLSX.utils.sheet_to_html(ws);
+    const full=`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>table{border-collapse:collapse}td,th{border:1px solid #ccc;padding:6px 10px}th{background:#f0f0f0}</style></head><body>${html}</body></html>`;
+    addResult(base(file.name)+'.html',new Blob([full],{type:'text/html'}),'text/html');
+  }else if(tgt==='txt'){
+    addResult(base(file.name)+'.txt',new Blob([text],{type:'text/plain'}),'text/plain');
+  }
+  log(`${file.name} → ${tgt.toUpperCase()} OK`,'ok');
+}
+
+async function jsonConvert(file,tgt) {
+  const text=await file.text();const data=JSON.parse(text);
+  if(tgt==='csv'){
+    const arr=Array.isArray(data)?data:[data];
+    const ws=XLSX.utils.json_to_sheet(arr);
+    const delim=document.getElementById('opt-delim')?.value||',';
+    addResult(base(file.name)+'.csv',new Blob([XLSX.utils.sheet_to_csv(ws,{FS:delim})],{type:'text/csv'}),'text/csv');
+  }else if(tgt==='txt'){
+    addResult(base(file.name)+'.txt',new Blob([JSON.stringify(data,null,2)],{type:'text/plain'}),'text/plain');
+  }else if(tgt==='html'){
+    const arr=Array.isArray(data)?data:[data];
+    const keys=Object.keys(arr[0]||{});
+    let table=`<table><thead><tr>${keys.map(k=>`<th>${k}</th>`).join('')}</tr></thead><tbody>`;
+    arr.forEach(row=>{table+=`<tr>${keys.map(k=>`<td>${row[k]??''}</td>`).join('')}</tr>`;});
+    table+='</tbody></table>';
+    const full=`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>table{border-collapse:collapse}td,th{border:1px solid #ccc;padding:6px 10px}th{background:#f0f0f0}</style></head><body>${table}</body></html>`;
+    addResult(base(file.name)+'.html',new Blob([full],{type:'text/html'}),'text/html');
+  }
+  log(`${file.name} → ${tgt.toUpperCase()} OK`,'ok');
+}
+
+async function mdConvert(file,tgt) {
+  const text=await file.text();
+  if(tgt==='html'){
+    const body=marked.parse(text);
+    const full=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${file.name}</title><style>body{font-family:sans-serif;max-width:800px;margin:0 auto;padding:2rem}pre{background:#f0f0f0;padding:1rem;overflow-x:auto}code{background:#f0f0f0;padding:2px 4px}</style></head><body>${body}</body></html>`;
+    addResult(base(file.name)+'.html',new Blob([full],{type:'text/html'}),'text/html');
+  }else if(tgt==='txt'){
+    const stripped=text.replace(/#{1,6}\s+/g,'').replace(/\*\*(.*?)\*\*/g,'$1').replace(/\*(.*?)\*/g,'$1')
+      .replace(/`{3}[\s\S]*?`{3}/g,'').replace(/`(.*?)`/g,'$1')
+      .replace(/\[([^\]]+)\]\([^)]+\)/g,'$1').replace(/!\[([^\]]*)\]\([^)]+\)/g,'$1')
+      .replace(/^[-*+]\s+/gm,'• ');
+    addResult(base(file.name)+'.txt',new Blob([stripped],{type:'text/plain'}),'text/plain');
+  }else if(tgt==='pdf'){
+    const{jsPDF}=window.jspdf;
+    const pageSize=document.getElementById('opt-pagesize')?.value||'a4';
+    const orient=document.getElementById('opt-orient')?.value||'portrait';
+    const doc=new jsPDF({orientation:orient,format:pageSize});
+    const lines=doc.splitTextToSize(text,180);let y=20;
+    lines.forEach(line=>{if(y>280){doc.addPage();y=20;}doc.setFontSize(11);doc.text(line,15,y);y+=6;});
+    addResult(base(file.name)+'.pdf',doc.output('blob'),'application/pdf');
+  }
+  log(`${file.name} → ${tgt.toUpperCase()} OK`,'ok');
+}
+
+async function txtConvert(file,tgt) {
+  const text=await file.text();
+  if(tgt==='pdf'){
+    const{jsPDF}=window.jspdf;
+    const pageSize=document.getElementById('opt-pagesize')?.value||'a4';
+    const orient=document.getElementById('opt-orient')?.value||'portrait';
+    const doc=new jsPDF({orientation:orient,format:pageSize});
+    const lines=doc.splitTextToSize(text,180);let y=20;
+    lines.forEach(line=>{if(y>280){doc.addPage();y=20;}doc.setFontSize(11);doc.text(line,15,y);y+=6;});
+    addResult(base(file.name)+'.pdf',doc.output('blob'),'application/pdf');
+  }else if(tgt==='md'){
+    addResult(base(file.name)+'.md',new Blob([text],{type:'text/plain'}),'text/plain');
+  }else if(tgt==='html'){
+    const escaped=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const full=`<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body><pre style="font-family:sans-serif;white-space:pre-wrap;padding:2rem">${escaped}</pre></body></html>`;
+    addResult(base(file.name)+'.html',new Blob([full],{type:'text/html'}),'text/html');
+  }else if(tgt==='json'){
+    const lines=text.split('\n').filter(l=>l.trim());
+    addResult(base(file.name)+'.json',new Blob([JSON.stringify(lines,null,2)],{type:'application/json'}),'application/json');
+  }
+  log(`${file.name} → ${tgt.toUpperCase()} OK`,'ok');
+}
+
+async function htmlConvert(file,tgt) {
+  const text=await file.text();
+  const parser=new DOMParser();
+  const doc2=parser.parseFromString(text,'text/html');
+  if(tgt==='pdf'){
+    const content=doc2.body.innerText||doc2.body.textContent;
+    const{jsPDF}=window.jspdf;
+    const pageSize=document.getElementById('opt-pagesize')?.value||'a4';
+    const orient=document.getElementById('opt-orient')?.value||'portrait';
+    const pdoc=new jsPDF({orientation:orient,format:pageSize});
+    const lines=pdoc.splitTextToSize(content,180);let y=20;
+    lines.forEach(line=>{if(y>280){pdoc.addPage();y=20;}pdoc.setFontSize(11);pdoc.text(line,15,y);y+=6;});
+    addResult(base(file.name)+'.pdf',pdoc.output('blob'),'application/pdf');
+  }else if(tgt==='txt'){
+    const content=doc2.body.innerText||doc2.body.textContent;
+    addResult(base(file.name)+'.txt',new Blob([content],{type:'text/plain'}),'text/plain');
+  }else if(tgt==='md'){
+    let md=doc2.body.innerHTML
+      .replace(/<h1[^>]*>(.*?)<\/h1>/gi,'# $1\n').replace(/<h2[^>]*>(.*?)<\/h2>/gi,'## $1\n')
+      .replace(/<h3[^>]*>(.*?)<\/h3>/gi,'### $1\n').replace(/<strong[^>]*>(.*?)<\/strong>/gi,'**$1**')
+      .replace(/<b[^>]*>(.*?)<\/b>/gi,'**$1**').replace(/<em[^>]*>(.*?)<\/em>/gi,'*$1*')
+      .replace(/<a[^>]*href="([^"]*)"[^>]*>(.*?)<\/a>/gi,'[$2]($1)')
+      .replace(/<br\s*\/?>/gi,'\n').replace(/<p[^>]*>/gi,'\n').replace(/<\/p>/gi,'\n')
+      .replace(/<li[^>]*>(.*?)<\/li>/gi,'- $1\n').replace(/<[^>]+>/g,'')
+      .replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&nbsp;/g,' ');
+    addResult(base(file.name)+'.md',new Blob([md],{type:'text/plain'}),'text/plain');
+  }
+  log(`${file.name} → ${tgt.toUpperCase()} OK`,'ok');
+}
+
+async function pptxToText(file) {
+  const buf=await file.arrayBuffer();
+  const zip=await JSZip.loadAsync(buf);
+  let text=`=== ${file.name} ===\n\n`;
+  const slideFiles=Object.keys(zip.files).filter(n=>/ppt\/slides\/slide\d+\.xml/.test(n)).sort();
+  for(let i=0;i<slideFiles.length;i++){
+    const xml=await zip.files[slideFiles[i]].async('string');
+    const parser=new DOMParser();
+    const doc2=parser.parseFromString(xml,'application/xml');
+    const txts=Array.from(doc2.querySelectorAll('t')).map(el=>el.textContent).join(' ');
+    text+=`--- Slide ${i+1} ---\n${txts}\n\n`;
+  }
+  addResult(base(file.name)+'.txt',new Blob([text],{type:'text/plain'}),'text/plain');
+  log(`${file.name} → TXT OK (${slideFiles.length} slides)`,'ok');
+}
+
+async function pptxToImages(file,tgt) {
+  const buf=await file.arrayBuffer();
+  const zip=await JSZip.loadAsync(buf);
+  const slideFiles=Object.keys(zip.files).filter(n=>/ppt\/slides\/slide\d+\.xml/.test(n)).sort();
+  const{jsPDF}=window.jspdf;
+  let doc;
+  if(tgt==='pdf'){
+    const pageSize=document.getElementById('opt-pagesize')?.value||'a4';
+    const orient=document.getElementById('opt-orient')?.value||'landscape';
+    doc=new jsPDF({orientation:orient,format:pageSize});
+  }
+  for(let i=0;i<slideFiles.length;i++){
+    const xml=await zip.files[slideFiles[i]].async('string');
+    const parser=new DOMParser();
+    const doc2=parser.parseFromString(xml,'application/xml');
+    const txts=Array.from(doc2.querySelectorAll('t')).map(el=>el.textContent);
+    const canvas=document.createElement('canvas');
+    canvas.width=960;canvas.height=540;
+    const ctx=canvas.getContext('2d');
+    ctx.fillStyle='#ffffff';ctx.fillRect(0,0,960,540);
+    ctx.fillStyle='#0A0A0A';ctx.fillRect(0,0,960,10);ctx.fillRect(0,530,960,10);
+    ctx.fillStyle='#333';ctx.font='bold 14px sans-serif';ctx.fillText(`Slide ${i+1}`,18,36);
+    ctx.fillStyle='#888';ctx.font='11px sans-serif';ctx.fillText(file.name,18,50);
+    ctx.fillStyle='#111';let y=84;
+    txts.forEach((t,ti)=>{
+      if(!t.trim())return;
+      const sz=ti===0?26:14;
+      ctx.font=ti===0?`bold ${sz}px sans-serif`:`${sz}px sans-serif`;
+      ctx.fillStyle=ti===0?'#111':'#444';
+      wrapText(ctx,t,920).forEach(line=>{if(y>510)return;ctx.fillText(line,18,y);y+=sz+5;});
+      y+=6;
+    });
+    if(tgt==='png'){
+      const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
+      addResult(`${base(file.name)}_slide${i+1}.png`,blob,'image/png');
+    }else if(tgt==='pdf'){
+      const imgData=canvas.toDataURL('image/jpeg',0.92);
+      if(i>0)doc.addPage();
+      doc.addImage(imgData,'JPEG',0,0,297,210);
+    }
+    log(`  → Slide ${i+1}/${slideFiles.length}`,'ok');
+  }
+  if(tgt==='pdf'&&doc) addResult(base(file.name)+'.pdf',doc.output('blob'),'application/pdf');
+  log(`${file.name} → ${tgt.toUpperCase()} OK`,'ok');
+}
+
+function wrapText(ctx,text,maxWidth) {
+  const words=text.split(' ');const lines=[];let current='';
+  words.forEach(w=>{
+    const test=current?current+' '+w:w;
+    if(ctx.measureText(test).width>maxWidth&&current){lines.push(current);current=w;}
+    else current=test;
+  });
+  if(current)lines.push(current);
+  return lines;
+}
+
+// ============================================================
+// PWA
+// ============================================================
+if('serviceWorker' in navigator){
+  window.addEventListener('load',async()=>{
+    try{
+      const reg=await navigator.serviceWorker.register('./sw.js',{scope:'./'});
+      setInterval(()=>reg.update(),60000);
+      reg.addEventListener('updatefound',()=>{
+        const nw=reg.installing;
+        nw.addEventListener('statechange',()=>{
+          if(nw.state==='installed'&&navigator.serviceWorker.controller)
+            document.getElementById('update-banner').classList.add('show');
+        });
+      });
+      log('PWA: Service worker aktif','ok');
+    }catch(err){log('PWA: SW gagal — '+err.message,'warn');}
+  });
+  let refreshing=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(!refreshing){refreshing=true;window.location.reload();}
+  });
+}
+
+async function applyUpdate(){
+  const reg=await navigator.serviceWorker.getRegistration();
+  if(reg&&reg.waiting)reg.waiting.postMessage({type:'SKIP_WAITING'});
+}
+</script>
+</body>
+</html>
