@@ -13,13 +13,13 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij4KICA8cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIGZpbGw9IiMwQTBBMEEiLz4KICA8cmVjdCB4PSIxLjUiIHk9IjEuNSIgd2lkdGg9IjYxIiBoZWlnaHQ9IjYxIiBmaWxsPSJub25lIiBzdHJva2U9IiNGNUY1MDAiIHN0cm9rZS13aWR0aD0iMyIvPgogIDxsaW5lIHgxPSIxMiIgeTE9IjI1IiB4Mj0iNTAiIHkyPSIyNSIgc3Ryb2tlPSIjRjVGNTAwIiBzdHJva2Utd2lkdGg9IjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxwb2x5bGluZSBwb2ludHM9IjQwLDE0IDUyLDI1IDQwLDM2IiBmaWxsPSJub25lIiBzdHJva2U9IiNGNUY1MDAiIHN0cm9rZS13aWR0aD0iNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CiAgPGxpbmUgeDE9IjUyIiB5MT0iNDAiIHgyPSIxNCIgeTI9IjQwIiBzdHJva2U9IiNGNUY1MDAiIHN0cm9rZS13aWR0aD0iNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPHBvbHlsaW5lIHBvaW50cz0iMjQsMjkgMTIsNDAgMjQsNTEiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0Y1RjUwMCIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="vendor/pdf-lib.min.js"></script>
+<script src="vendor/pdf.min.js"></script>
+<script src="vendor/jspdf.umd.min.js"></script>
+<script src="vendor/mammoth.browser.min.js"></script>
+<script src="vendor/xlsx.full.min.js"></script>
+<script src="vendor/marked.min.js"></script>
+<script src="vendor/jszip.min.js"></script>
 <style>
 :root {
   --Y: #F5F500;
@@ -289,6 +289,20 @@ body {
   to   { opacity:1; transform:scale(1) translateY(0); }
 }
 .qi:hover { border-color:var(--G4); }
+.qi.qi-skip { opacity:.4; }
+.qi-skip-tag {
+  position:absolute; top:6px; right:6px;
+  font-family:var(--FM); font-size:7px; letter-spacing:1px;
+  color:var(--MU); border:1px solid var(--G4); padding:1px 4px;
+  text-transform:uppercase; background:var(--B);
+}
+.qi-big-tag {
+  position:absolute; top:6px; right:6px;
+  font-family:var(--FM); font-size:7px; letter-spacing:1px;
+  color:var(--RD); border:1px solid var(--RD); padding:1px 4px;
+  text-transform:uppercase; background:var(--B);
+}
+.qi.qi-skip .qi-big-tag { display:none; }
 .qi-badge {
   display:inline-block;
   font-size:9px; font-weight:600; letter-spacing:1.5px;
@@ -374,6 +388,31 @@ body {
   background: rgba(0,255,136,.06);
 }
 .fmt-card.disabled { opacity:.2; cursor:not-allowed; pointer-events:none; }
+
+/* ── MULTI-FORMAT CONVERT ── */
+.multi-convert-grid { display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
+.mc-row {
+  display:flex; align-items:center; gap:10px;
+  border:1.5px solid var(--G3); padding:10px 12px;
+  background:var(--G1);
+}
+.mc-ext {
+  font-size:11px; font-weight:600; letter-spacing:1px;
+  background:var(--Y); color:var(--B); padding:3px 8px; flex-shrink:0;
+}
+.mc-arrow { color:var(--MU); font-size:12px; flex-shrink:0; }
+.mc-row select {
+  flex:1; background:var(--B); color:var(--W); border:1.5px solid var(--G4);
+  font-family:var(--FM); font-size:11px; padding:6px 8px; letter-spacing:1px;
+}
+.mc-count { font-size:9px; color:var(--MU); letter-spacing:1px; flex-shrink:0; white-space:nowrap; }
+.multi-convert-btn {
+  width:100%; background:none; border:1.5px solid var(--Y); color:var(--Y);
+  font-family:var(--FD); font-size:13px; letter-spacing:1px;
+  padding:14px; cursor:pointer; text-transform:uppercase; transition:all .15s;
+}
+.multi-convert-btn:hover:not(:disabled) { background:var(--Y); color:var(--B); }
+.multi-convert-btn:disabled { opacity:.5; cursor:wait; }
 
 /* Arrow column */
 .picker-arrow {
@@ -549,6 +588,44 @@ option { background:var(--G2); }
   text-transform:uppercase; transition:all .15s;
 }
 .drawer-close:hover { border-color:var(--RD); color:var(--RD); }
+
+.download-zip-btn {
+  position:absolute; top:56px; right:24px;
+  background:none; border:1.5px solid var(--Y);
+  color:var(--Y); font-family:var(--FM);
+  font-size:10px; letter-spacing:1.5px;
+  padding:6px 12px; cursor:pointer;
+  text-transform:uppercase; transition:all .15s;
+  display:inline-flex; align-items:center; gap:4px;
+}
+.download-zip-btn:hover:not(:disabled) { background:var(--Y); color:var(--B); }
+.download-zip-btn:disabled { opacity:.5; cursor:wait; }
+
+#failed-wrap { margin-top:20px; padding-top:16px; border-top:1.5px dashed var(--G3); }
+.failed-title {
+  font-size:10px; letter-spacing:1.5px; color:var(--RD);
+  text-transform:uppercase; margin-bottom:10px;
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;
+}
+.retry-all-btn {
+  background:none; border:1px solid var(--RD); color:var(--RD);
+  font-family:var(--FM); font-size:9px; letter-spacing:1px;
+  padding:4px 10px; cursor:pointer; text-transform:uppercase; transition:all .15s;
+}
+.retry-all-btn:hover { background:var(--RD); color:var(--B); }
+.failed-list { display:flex; flex-direction:column; gap:6px; }
+.failed-item {
+  border:1.5px solid var(--RD); background:rgba(255,51,51,.06);
+  padding:10px 12px; display:flex; align-items:center; gap:10px;
+}
+.failed-name { flex:1; font-size:11px; color:var(--W); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.failed-err { font-size:9px; color:var(--MU); }
+.retry-btn {
+  background:none; border:1px solid var(--G4); color:var(--W);
+  font-family:var(--FM); font-size:9px; letter-spacing:1px;
+  padding:4px 10px; cursor:pointer; text-transform:uppercase; flex-shrink:0; transition:all .15s;
+}
+.retry-btn:hover { border-color:var(--Y); color:var(--Y); }
 
 .results-grid {
   display:grid;
@@ -777,6 +854,17 @@ option { background:var(--G2); }
         </div>
         <div class="opts-grid" id="options-container"></div>
       </div>
+
+      <div id="multi-convert-wrap" style="display:none">
+        <div class="step-eyebrow" style="margin-bottom:12px">
+          <span class="step-num" style="background:var(--G3);color:var(--MU)">ALL</span>
+          <span class="step-title">Convert Lintas Format Sekaligus</span>
+          <div class="step-line"></div>
+        </div>
+        <div class="drawer-sub" style="margin-bottom:14px;text-transform:none;letter-spacing:normal;font-size:11px">File campuran terdeteksi. Pilih target per format, lalu convert semuanya dalam satu klik — tidak perlu pilih "From" satu-satu.</div>
+        <div id="multi-convert-grid" class="multi-convert-grid"></div>
+        <button id="multi-convert-btn" class="multi-convert-btn" onclick="startMultiConvert()">CONVERT SEMUA FORMAT →</button>
+      </div>
     </div>
   </section>
 
@@ -804,9 +892,14 @@ option { background:var(--G2); }
   <div class="drawer-panel">
     <div class="drawer-handle"></div>
     <button class="drawer-close" onclick="closeResults()">TUTUP ×</button>
+    <button class="download-zip-btn" id="download-zip-btn" onclick="downloadAllZip()" style="display:none">⇩ ZIP SEMUA</button>
     <div class="drawer-title">Hasil Konversi</div>
     <div class="drawer-sub" id="results-count-label">0 file siap download</div>
     <div class="results-grid" id="results-list"></div>
+    <div id="failed-wrap" style="display:none">
+      <div class="failed-title">File Gagal (<span id="failed-count">0</span>) <button class="retry-all-btn" onclick="retryAllFailed()">COBA LAGI SEMUA</button></div>
+      <div class="failed-list" id="failed-list"></div>
+    </div>
   </div>
 </div>
 
@@ -834,7 +927,8 @@ const state = {
   converting: false,
   convertedCount: 0,
   selectedFrom: null,
-  selectedTo: null
+  selectedTo: null,
+  failedItems: []
 };
 
 // ============================================================
@@ -846,9 +940,8 @@ const CONVERSIONS = {
   xlsx: ['csv','json','html','txt'],
   xls:  ['csv','json','html','txt'],
   pptx: ['png','pdf','txt'],
-  ppt:  ['txt'],
-  md:   ['html','txt','pdf'],
-  txt:  ['pdf','md','html','json'],
+  md:   ['html','txt','pdf','docx','pptx'],
+  txt:  ['pdf','md','html','json','docx','pptx'],
   csv:  ['json','xlsx','html','txt'],
   json: ['csv','txt','html'],
   png:  ['jpg','webp','pdf','bmp'],
@@ -857,7 +950,7 @@ const CONVERSIONS = {
   webp: ['png','jpg','pdf'],
   gif:  ['png','jpg','webp'],
   bmp:  ['png','jpg','webp','pdf'],
-  html: ['pdf','txt','md']
+  html: ['pdf','txt','md','docx','pptx']
 };
 
 // ============================================================
@@ -865,10 +958,30 @@ const CONVERSIONS = {
 // ============================================================
 const ext  = n => n.split('.').pop().toLowerCase();
 const base = n => n.replace(/\.[^.]+$/,'');
+// Lets the browser paint/respond between heavy sync chunks (per-page, per-slide work)
+// so multi-page PDFs / multi-slide PPTX don't lock up the tab mid-conversion.
+const yieldToUI = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
 function fmtSize(b) {
   if(b<1024) return b+' B';
   if(b<1048576) return (b/1024).toFixed(1)+' KB';
   return (b/1048576).toFixed(2)+' MB';
+}
+
+// ============================================================
+// LARGE FILE WARNING — everything runs in-browser (RAM), so a
+// huge PDF/image can freeze or crash the tab. Warn early.
+// ============================================================
+const LARGE_FILE_MB = { image: 25, pdf: 60, default: 40 };
+function largeFileThreshold(e) {
+  if (['png','jpg','jpeg','webp','gif','bmp'].includes(e)) return LARGE_FILE_MB.image;
+  if (e === 'pdf') return LARGE_FILE_MB.pdf;
+  return LARGE_FILE_MB.default;
+}
+function checkLargeFile(f) {
+  const e = ext(f.name);
+  const thresholdMB = largeFileThreshold(e);
+  const sizeMB = f.size / 1048576;
+  return sizeMB > thresholdMB ? { sizeMB, thresholdMB } : null;
 }
 
 // ============================================================
@@ -950,6 +1063,7 @@ function selectFrom(e) {
     c.classList.toggle('from-active', c.dataset.fmt === e);
   });
   buildToGrid(e);
+  renderQueue();
 }
 
 function buildToGrid(fromExt) {
@@ -1016,20 +1130,143 @@ function showOptions(fmt) {
     return;
   }
   cont.innerHTML = html;
+  restoreOptionValues();
+  bindOptionPersistence();
+}
+
+// ============================================================
+// OPTION PERSISTENCE — remember page size, quality, etc. across
+// uploads so the user doesn't have to reset them every time.
+// ============================================================
+const OPT_STORAGE_KEY = 'ocd_last_opts';
+const OPT_IDS = ['opt-pagesize','opt-orient','opt-quality','opt-scale','opt-json-fmt','opt-delim'];
+
+function loadSavedOpts() {
+  try { return JSON.parse(localStorage.getItem(OPT_STORAGE_KEY)) || {}; }
+  catch { return {}; }
+}
+
+function restoreOptionValues() {
+  const saved = loadSavedOpts();
+  OPT_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && saved[id] !== undefined) el.value = saved[id];
+  });
+}
+
+function bindOptionPersistence() {
+  OPT_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('change', () => {
+      const saved = loadSavedOpts();
+      saved[id] = el.value;
+      try { localStorage.setItem(OPT_STORAGE_KEY, JSON.stringify(saved)); } catch {}
+    });
+  });
+}
+
+// ============================================================
+// MULTI-FORMAT CONVERT ALL — when the queue has a mix of
+// extensions, let the user pick one target per extension and
+// convert everything in a single click instead of one From at a time.
+// ============================================================
+function buildMultiConvertGrid() {
+  const wrap = document.getElementById('multi-convert-wrap');
+  const grid = document.getElementById('multi-convert-grid');
+  const exts = [...new Set(state.files.map(f => ext(f.name)))].filter(e => CONVERSIONS[e] && CONVERSIONS[e].length);
+  if (exts.length < 2) { wrap.style.display = 'none'; grid.innerHTML = ''; return; }
+  wrap.style.display = 'block';
+  grid.innerHTML = exts.map(e => {
+    const count = state.files.filter(f => ext(f.name) === e).length;
+    return `
+      <div class="mc-row">
+        <span class="mc-ext">${e.toUpperCase()}</span>
+        <span class="mc-arrow">→</span>
+        <select data-ext="${e}">${CONVERSIONS[e].map(t => `<option value="${t}">${t.toUpperCase()}</option>`).join('')}</select>
+        <span class="mc-count">${count} file</span>
+      </div>`;
+  }).join('');
+}
+
+async function startMultiConvert() {
+  if (state.converting) return;
+  const selects = document.querySelectorAll('#multi-convert-grid select');
+  if (!selects.length) return;
+
+  const jobs = [...selects].flatMap(s => {
+    const e = s.dataset.ext, target = s.value;
+    return state.files.filter(f => ext(f.name) === e).map(file => ({ file, target }));
+  });
+  if (!jobs.length) return;
+
+  const bigOnes = jobs.map(j => ({ ...j, warn: checkLargeFile(j.file) })).filter(j => j.warn);
+  if (bigOnes.length) {
+    const ok = confirm(`⚠ ${bigOnes.length} file besar terdeteksi.\nProses jalan di browser (RAM tab) dan bisa bikin tab lag atau crash. Lanjut convert semua?`);
+    if (!ok) return;
+  }
+
+  state.converting = true;
+  const btn = document.getElementById('multi-convert-btn');
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'CONVERTING…';
+  document.getElementById('convert-btn').disabled = true;
+  document.getElementById('bottom-bar').classList.add('converting');
+  showBottomBar();
+  setProgress(0);
+
+  let done = 0, processed = 0;
+  for (const { file, target } of jobs) {
+    const srcExt = ext(file.name);
+    try {
+      await convertFile(file, srcExt, target);
+      done++;
+      state.failedItems = state.failedItems.filter(x => !(x.file === file && x.targetFmt === target));
+    } catch (err) {
+      const existing = state.failedItems.find(x => x.file === file && x.targetFmt === target);
+      if (existing) existing.error = err.message;
+      else state.failedItems.push({ file, srcExt, targetFmt: target, error: err.message });
+    }
+    processed++;
+    setProgress(Math.round(processed / jobs.length * 100));
+  }
+  renderFailedList();
+
+  const failedCount = jobs.length - done;
+  if (failedCount === 0) toast(`✓ ${done} file dikonversi ke format masing-masing!`);
+  else if (done === 0) toast(`✕ Semua gagal — cek daftar "File Gagal" di hasil`);
+  else toast(`⚠ ${done} berhasil, ${failedCount} gagal — cek daftar "File Gagal" di hasil`);
+
+  state.converting = false;
+  btn.disabled = false;
+  btn.textContent = originalText;
+  document.getElementById('bottom-bar').classList.remove('converting');
+  validateConvert();
+  if (done > 0 || failedCount > 0) setTimeout(openResults, 400);
 }
 
 // ============================================================
 // FILE MANAGEMENT
 // ============================================================
 function addFiles(fileList) {
+  const bigOnes = [];
   Array.from(fileList).forEach(f => {
     const e = ext(f.name);
     if (!CONVERSIONS[e]) { log(`Format .${e} belum didukung: ${f.name}`, 'warn'); return; }
     if (state.files.find(x => x.name === f.name && x.size === f.size)) return;
     state.files.push(f);
+    const warn = checkLargeFile(f);
+    if (warn) bigOnes.push({ name: f.name, ...warn });
   });
+  if (bigOnes.length) {
+    const b = bigOnes[0];
+    const extra = bigOnes.length > 1 ? ` (+${bigOnes.length - 1} file besar lainnya)` : '';
+    toast(`⚠ ${b.name} ${b.sizeMB.toFixed(0)}MB — proses berat, tab bisa lag/crash${extra}`);
+  }
   renderQueue();
   buildFromGrid();
+  buildMultiConvertGrid();
   updateStats();
   validateConvert();
   if (state.files.length) {
@@ -1048,24 +1285,31 @@ function renderQueue() {
   document.getElementById('queue-count').textContent = state.files.length;
   el.innerHTML = '';
   state.files.forEach((f, i) => {
+    const isSkipped = state.selectedFrom && ext(f.name) !== state.selectedFrom;
+    const bigWarn = checkLargeFile(f);
     const qi = document.createElement('div');
-    qi.className = 'qi';
+    qi.className = 'qi' + (isSkipped ? ' qi-skip' : '');
     qi.style.animationDelay = (i * 30) + 'ms';
     qi.innerHTML = `
       <div class="qi-badge">${ext(f.name).toUpperCase()}</div>
       <div class="qi-name" title="${f.name}">${f.name}</div>
       <div class="qi-size">${fmtSize(f.size)}</div>
-      <button class="qi-rm" onclick="removeFile(${i})">×</button>`;
+      <button class="qi-rm" onclick="removeFile(${i})">×</button>
+      ${isSkipped ? '<span class="qi-skip-tag" title="Tidak ikut dikonversi karena format From berbeda">DILEWATI</span>' : ''}
+      ${bigWarn ? `<span class="qi-big-tag" title="File besar (>${bigWarn.thresholdMB}MB), proses bisa berat">⚠ BESAR</span>` : ''}`;
     el.appendChild(qi);
   });
 }
 
 function removeFile(i) {
-  state.files.splice(i, 1);
+  const [removed] = state.files.splice(i, 1);
+  state.failedItems = state.failedItems.filter(x => x.file !== removed);
+  renderFailedList();
   state.selectedFrom = null;
   state.selectedTo = null;
   renderQueue();
   buildFromGrid();
+  buildMultiConvertGrid();
   document.getElementById('to-grid').innerHTML = '';
   document.getElementById('opts-wrap').style.display = 'none';
   updateStats();
@@ -1080,9 +1324,12 @@ function removeFile(i) {
 
 function clearQueue() {
   state.files = [];
+  state.failedItems = [];
+  renderFailedList();
   state.selectedFrom = null;
   state.selectedTo = null;
   renderQueue();
+  buildMultiConvertGrid();
   document.getElementById('queue-wrap').style.display = 'none';
   document.getElementById('picker-wrap').style.display = 'none';
   document.getElementById('opts-wrap').style.display = 'none';
@@ -1118,7 +1365,7 @@ document.getElementById('file-input').addEventListener('change', e => addFiles(e
 // ============================================================
 function addResult(filename, blob, mimeType) {
   const url = URL.createObjectURL(blob);
-  state.results.push({ filename, url });
+  state.results.push({ filename, url, blob });
   state.convertedCount++;
   updateStats();
 
@@ -1137,6 +1384,41 @@ function addResult(filename, blob, mimeType) {
 
   document.getElementById('results-count-label').textContent =
     `${state.results.length} file siap download`;
+  document.getElementById('download-zip-btn').style.display = state.results.length > 1 ? 'inline-flex' : 'none';
+}
+
+async function downloadAllZip() {
+  if (!state.results.length) return;
+  const btn = document.getElementById('download-zip-btn');
+  const originalText = btn.textContent;
+  btn.textContent = 'ZIPPING…';
+  btn.disabled = true;
+  try {
+    const zip = new JSZip();
+    const usedNames = new Set();
+    state.results.forEach(r => {
+      let name = r.filename;
+      let i = 1;
+      while (usedNames.has(name)) { name = base(r.filename) + `_${i}.` + ext(r.filename); i++; }
+      usedNames.add(name);
+      zip.file(name, r.blob);
+    });
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(zipBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ocd-hasil-${Date.now()}.zip`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    toast(`✓ ${state.results.length} file di-zip!`);
+  } catch (err) {
+    toast(`✕ Gagal bikin ZIP — ${err.message}`);
+  } finally {
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
 }
 
 function openResults() {
@@ -1152,7 +1434,10 @@ function closeResults() {
 function clearResults() {
   state.results.forEach(r => URL.revokeObjectURL(r.url));
   state.results = [];
+  state.failedItems = [];
   document.getElementById('results-list').innerHTML = '';
+  document.getElementById('download-zip-btn').style.display = 'none';
+  renderFailedList();
   closeResults();
 }
 
@@ -1204,6 +1489,17 @@ async function startConvert() {
   const targetFmt = state.selectedTo;
   if (!targetFmt || !state.files.length) return;
 
+  const filesForSizeCheck = state.selectedFrom
+    ? state.files.filter(f => ext(f.name) === state.selectedFrom)
+    : state.files;
+  const bigOnes = filesForSizeCheck.map(f => ({ f, warn: checkLargeFile(f) })).filter(x => x.warn);
+  if (bigOnes.length) {
+    const names = bigOnes.slice(0, 3).map(x => `${x.f.name} (${x.warn.sizeMB.toFixed(0)}MB)`).join(', ');
+    const more = bigOnes.length > 3 ? ` +${bigOnes.length - 3} lagi` : '';
+    const ok = confirm(`⚠ ${bigOnes.length} file besar: ${names}${more}.\nProses jalan di browser (RAM tab) dan bisa bikin tab lag atau crash. Lanjut convert?`);
+    if (!ok) return;
+  }
+
   state.converting = true;
   const btn = document.getElementById('convert-btn');
   btn.disabled = true;
@@ -1221,21 +1517,15 @@ async function startConvert() {
     ? state.files.filter(f => ext(f.name) === state.selectedFrom)
     : state.files;
 
-  let done = 0;
-  for (const file of filesToConvert) {
-    const srcExt = ext(file.name);
-    log(`Proses: ${file.name}`);
-    try {
-      await convertFile(file, srcExt, targetFmt);
-      done++;
-      setProgress(Math.round(done / filesToConvert.length * 100));
-    } catch(err) {
-      log(`Gagal: ${file.name} — ${err.message}`, 'err');
-    }
-  }
+  const { done, failedCount } = await runConvertBatch(filesToConvert, targetFmt);
 
-  log(`Selesai. ${done}/${filesToConvert.length} berhasil.`, 'ok');
-  toast(`✓ ${done} file dikonversi!`);
+  if (failedCount === 0) {
+    toast(`✓ ${done} file dikonversi!`);
+  } else if (done === 0) {
+    toast(`✕ Semua gagal — cek daftar "File Gagal" di hasil`);
+  } else {
+    toast(`⚠ ${done} berhasil, ${failedCount} gagal — cek daftar "File Gagal" di hasil`);
+  }
 
   state.converting = false;
   btn.classList.remove('processing');
@@ -1245,7 +1535,77 @@ async function startConvert() {
   sp.remove();
   validateConvert();
 
-  if (done > 0) setTimeout(openResults, 400);
+  if (done > 0 || failedCount > 0) setTimeout(openResults, 400);
+}
+
+// Runs conversion for a list of files against one target format, recording
+// successes as results and failures into state.failedItems for retry.
+async function runConvertBatch(files, targetFmt) {
+  let done = 0;
+  let processed = 0;
+  for (const file of files) {
+    const srcExt = ext(file.name);
+    log(`Proses: ${file.name}`);
+    try {
+      await convertFile(file, srcExt, targetFmt);
+      done++;
+      state.failedItems = state.failedItems.filter(x => !(x.file === file && x.targetFmt === targetFmt));
+    } catch (err) {
+      log(`Gagal: ${file.name} — ${err.message}`, 'err');
+      const existing = state.failedItems.find(x => x.file === file && x.targetFmt === targetFmt);
+      if (existing) existing.error = err.message;
+      else state.failedItems.push({ file, srcExt, targetFmt, error: err.message });
+    }
+    processed++;
+    setProgress(Math.round(processed / files.length * 100));
+  }
+  renderFailedList();
+  return { done, failedCount: state.failedItems.length };
+}
+
+function renderFailedList() {
+  const wrap = document.getElementById('failed-wrap');
+  const list = document.getElementById('failed-list');
+  document.getElementById('failed-count').textContent = state.failedItems.length;
+  if (!state.failedItems.length) { wrap.style.display = 'none'; list.innerHTML = ''; return; }
+  wrap.style.display = 'block';
+  list.innerHTML = '';
+  state.failedItems.forEach((item, i) => {
+    const el = document.createElement('div');
+    el.className = 'failed-item';
+    el.innerHTML = `
+      <div style="flex:1;min-width:0">
+        <div class="failed-name" title="${item.file.name}">${item.file.name} → .${item.targetFmt.toUpperCase()}</div>
+        <div class="failed-err" title="${item.error}">${item.error}</div>
+      </div>
+      <button class="retry-btn" onclick="retryFailed(${i})">↻ RETRY</button>`;
+    list.appendChild(el);
+  });
+}
+
+async function retryFailed(i) {
+  const item = state.failedItems[i];
+  if (!item) return;
+  toast(`Mencoba ulang: ${item.file.name}…`);
+  const { done, failedCount } = await runConvertBatch([item.file], item.targetFmt);
+  if (done > 0) toast(`✓ ${item.file.name} berhasil dikonversi!`);
+  else toast(`✕ ${item.file.name} masih gagal`);
+}
+
+async function retryAllFailed() {
+  if (!state.failedItems.length) return;
+  const items = [...state.failedItems];
+  toast(`Mencoba ulang ${items.length} file…`);
+  // Group by target format since runConvertBatch takes one target at a time
+  const byTarget = {};
+  items.forEach(it => { (byTarget[it.targetFmt] = byTarget[it.targetFmt] || []).push(it.file); });
+  let totalDone = 0;
+  for (const [tgt, files] of Object.entries(byTarget)) {
+    const { done } = await runConvertBatch(files, tgt);
+    totalDone += done;
+  }
+  if (totalDone === items.length) toast(`✓ Semua ${totalDone} file berhasil di-retry!`);
+  else toast(`⚠ ${totalDone}/${items.length} berhasil, sisanya masih gagal`);
 }
 
 async function convertFile(file, srcExt, tgtFmt) {
@@ -1274,7 +1634,7 @@ async function convertFile(file, srcExt, tgtFmt) {
 // ============================================================
 async function imageToImage(file, srcExt, tgtFmt) {
   const quality = parseInt(document.getElementById('opt-quality')?.value||92)/100;
-  const bitmap = await createImageBitmap(file);
+  const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
   const canvas = document.createElement('canvas');
   canvas.width=bitmap.width; canvas.height=bitmap.height;
   const ctx=canvas.getContext('2d');
@@ -1290,10 +1650,12 @@ async function imageToPdf(file) {
   const pageSize=document.getElementById('opt-pagesize')?.value||'a4';
   const orient=document.getElementById('opt-orient')?.value||'portrait';
   const {jsPDF}=window.jspdf;
-  const bitmap=await createImageBitmap(file);
+  const bitmap=await createImageBitmap(file, { imageOrientation: 'from-image' });
   const canvas=document.createElement('canvas');
   canvas.width=bitmap.width;canvas.height=bitmap.height;
-  canvas.getContext('2d').drawImage(bitmap,0,0);
+  const ctx=canvas.getContext('2d');
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(bitmap,0,0);
   const dataUrl=canvas.toDataURL('image/jpeg',0.92);
   const doc=new jsPDF({orientation:orient,format:pageSize,unit:'mm'});
   const[pw,ph]=orient==='portrait'
@@ -1308,7 +1670,7 @@ async function imageToPdf(file) {
 
 async function pdfToImages(file,fmt) {
   if(typeof pdfjsLib==='undefined') throw new Error('PDF.js belum loaded');
-  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  pdfjsLib.GlobalWorkerOptions.workerSrc='vendor/pdf.worker.min.js';
   const scale=parseInt(document.getElementById('opt-scale')?.value||2);
   const quality=parseInt(document.getElementById('opt-quality')?.value||92)/100;
   const buf=await file.arrayBuffer();
@@ -1324,12 +1686,13 @@ async function pdfToImages(file,fmt) {
     const suffix=pdf.numPages>1?`_p${i}`:'';
     addResult(`${base(file.name)}${suffix}.${fmt}`,blob,mime);
     log(`  → Halaman ${i}/${pdf.numPages} OK`,'ok');
+    if(i%3===0) await yieldToUI();
   }
 }
 
 async function pdfToHtml(file) {
   if(typeof pdfjsLib==='undefined') throw new Error('PDF.js belum loaded');
-  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  pdfjsLib.GlobalWorkerOptions.workerSrc='vendor/pdf.worker.min.js';
   const buf=await file.arrayBuffer();
   const pdf=await pdfjsLib.getDocument({data:buf}).promise;
   let html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${file.name}</title><style>body{font-family:sans-serif;max-width:800px;margin:0 auto;padding:2rem}p{margin:.5em 0}</style></head><body>`;
@@ -1343,6 +1706,7 @@ async function pdfToHtml(file) {
       html+=item.str;lastY=item.transform[5];
     });
     html+='<hr>';
+    if(i%5===0) await yieldToUI();
   }
   html+='</body></html>';
   addResult(base(file.name)+'.html',new Blob([html],{type:'text/html'}),'text/html');
@@ -1351,7 +1715,7 @@ async function pdfToHtml(file) {
 
 async function pdfToText(file) {
   if(typeof pdfjsLib==='undefined') throw new Error('PDF.js belum loaded');
-  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  pdfjsLib.GlobalWorkerOptions.workerSrc='vendor/pdf.worker.min.js';
   const buf=await file.arrayBuffer();
   const pdf=await pdfjsLib.getDocument({data:buf}).promise;
   let text='';
@@ -1361,6 +1725,7 @@ async function pdfToText(file) {
     text+=`=== Halaman ${i} ===\n`;
     content.items.forEach(item=>{text+=item.str+(item.hasEOL?'\n':'');});
     text+='\n\n';
+    if(i%5===0) await yieldToUI();
   }
   addResult(base(file.name)+'.txt',new Blob([text],{type:'text/plain'}),'text/plain');
   log(`${file.name} → TXT OK`,'ok');
@@ -1395,6 +1760,8 @@ async function xlsxConvert(file,tgt) {
   const buf=await file.arrayBuffer();
   const wb=XLSX.read(buf,{type:'array'});
   const ws=wb.Sheets[wb.SheetNames[0]];
+  if(wb.SheetNames.length>1)
+    log(`  ⚠ ${file.name} punya ${wb.SheetNames.length} sheet, hanya "${wb.SheetNames[0]}" yang dikonversi`,'warn');
   if(tgt==='csv'){
     const delim=document.getElementById('opt-delim')?.value||',';
     addResult(base(file.name)+'.csv',new Blob([XLSX.utils.sheet_to_csv(ws,{FS:delim})],{type:'text/csv'}),'text/csv');
@@ -1412,19 +1779,26 @@ async function xlsxConvert(file,tgt) {
   log(`${file.name} → ${tgt.toUpperCase()} OK`,'ok');
 }
 
+function sniffDelim(text) {
+  const firstLine = text.split(/\r?\n/,1)[0] || '';
+  const counts = { ',': (firstLine.match(/,/g)||[]).length, ';': (firstLine.match(/;/g)||[]).length, '\t': (firstLine.match(/\t/g)||[]).length };
+  return Object.keys(counts).reduce((a,b)=>counts[b]>counts[a]?b:a);
+}
+
 async function csvConvert(file,tgt) {
   const text=await file.text();
+  const srcDelim=sniffDelim(text);
   if(tgt==='json'){
-    const wb=XLSX.read(text,{type:'string'});const ws=wb.Sheets[wb.SheetNames[0]];
+    const wb=XLSX.read(text,{type:'string',FS:srcDelim});const ws=wb.Sheets[wb.SheetNames[0]];
     const fmt=document.getElementById('opt-json-fmt')?.value||'array';
     const data=fmt==='array'?XLSX.utils.sheet_to_json(ws):XLSX.utils.sheet_to_json(ws,{header:1});
     addResult(base(file.name)+'.json',new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),'application/json');
   }else if(tgt==='xlsx'){
-    const wb=XLSX.read(text,{type:'string'});
+    const wb=XLSX.read(text,{type:'string',FS:srcDelim});
     const out=XLSX.write(wb,{bookType:'xlsx',type:'array'});
     addResult(base(file.name)+'.xlsx',new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
   }else if(tgt==='html'){
-    const wb=XLSX.read(text,{type:'string'});const ws=wb.Sheets[wb.SheetNames[0]];
+    const wb=XLSX.read(text,{type:'string',FS:srcDelim});const ws=wb.Sheets[wb.SheetNames[0]];
     const html=XLSX.utils.sheet_to_html(ws);
     const full=`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>table{border-collapse:collapse}td,th{border:1px solid #ccc;padding:6px 10px}th{background:#f0f0f0}</style></head><body>${html}</body></html>`;
     addResult(base(file.name)+'.html',new Blob([full],{type:'text/html'}),'text/html');
@@ -1455,6 +1829,125 @@ async function jsonConvert(file,tgt) {
   log(`${file.name} → ${tgt.toUpperCase()} OK`,'ok');
 }
 
+// ============================================================
+// DOCX / PPTX BUILDERS — raw OOXML via JSZip (no extra libs)
+// ============================================================
+function escapeXml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function stripMdInline(s) {
+  return s.replace(/\*\*(.*?)\*\*/g,'$1').replace(/\*(.*?)\*/g,'$1')
+    .replace(/`(.*?)`/g,'$1').replace(/\[([^\]]+)\]\(([^)]+)\)/g,'$1')
+    .replace(/!\[([^\]]*)\]\([^)]+\)/g,'$1');
+}
+
+// Turns markdown text into {type:'h1'|'h2'|'h3'|'p'|'li', text} blocks
+function mdToBlocks(text) {
+  const tokens = marked.lexer(text);
+  const blocks = [];
+  (function walk(toks) {
+    toks.forEach(tok => {
+      if (tok.type === 'heading') blocks.push({ type: 'h' + Math.min(tok.depth, 3), text: stripMdInline(tok.text) });
+      else if (tok.type === 'paragraph') blocks.push({ type: 'p', text: stripMdInline(tok.text) });
+      else if (tok.type === 'list') (tok.items||[]).forEach((item, idx) => blocks.push({ type: tok.ordered ? 'oli' : 'li', text: stripMdInline(item.text), n: idx + (tok.start || 1) }));
+      else if (tok.type === 'code') blocks.push({ type: 'p', text: tok.text });
+      else if (tok.type === 'blockquote') walk(tok.tokens || []);
+    });
+  })(tokens);
+  return blocks;
+}
+
+// Turns plain text into {type:'p'} blocks split on blank lines
+function plainToBlocks(text) {
+  return text.split(/\n{2,}/).map(p => p.trim()).filter(Boolean).map(p => ({ type: 'p', text: p }));
+}
+
+async function buildDocxBlob(blocks) {
+  const styleMap = { h1:'Heading1', h2:'Heading2', h3:'Heading3', p:'Normal', li:'ListParagraph', oli:'ListParagraph' };
+  const bodyXml = blocks.map(b => {
+    const style = styleMap[b.type] || 'Normal';
+    const prefix = b.type === 'li' ? '•  ' : b.type === 'oli' ? `${b.n}.  ` : '';
+    return `<w:p><w:pPr><w:pStyle w:val="${style}"/></w:pPr><w:r><w:t xml:space="preserve">${escapeXml(prefix + b.text)}</w:t></w:r></w:p>`;
+  }).join('') || '<w:p/>';
+
+  const zip = new JSZip();
+  zip.file('[Content_Types].xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>`);
+  zip.file('_rels/.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`);
+  zip.file('word/_rels/document.xml.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`);
+  zip.file('word/styles.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+<w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style>
+<w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/><w:basedOn w:val="Normal"/><w:pPr><w:spacing w:before="240" w:after="120"/></w:pPr><w:rPr><w:b/><w:sz w:val="32"/></w:rPr></w:style>
+<w:style w:type="paragraph" w:styleId="Heading2"><w:name w:val="heading 2"/><w:basedOn w:val="Normal"/><w:pPr><w:spacing w:before="200" w:after="100"/></w:pPr><w:rPr><w:b/><w:sz w:val="28"/></w:rPr></w:style>
+<w:style w:type="paragraph" w:styleId="Heading3"><w:name w:val="heading 3"/><w:basedOn w:val="Normal"/><w:pPr><w:spacing w:before="160" w:after="80"/></w:pPr><w:rPr><w:b/><w:sz w:val="24"/></w:rPr></w:style>
+<w:style w:type="paragraph" w:styleId="ListParagraph"><w:name w:val="List Paragraph"/><w:basedOn w:val="Normal"/><w:pPr><w:ind w:left="360"/></w:pPr></w:style>
+</w:styles>`);
+  zip.file('word/document.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${bodyXml}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1417" w:right="1417" w:bottom="1417" w:left="1417"/></w:sectPr></w:body></w:document>`);
+  return zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+}
+
+// Groups blocks into slides: each h1/h2 starts a new slide, body lines chunked to keep slides readable
+function blocksToSlides(blocks, fallbackTitle) {
+  const MAX_LINES = 7;
+  const raw = [];
+  let current = null;
+  blocks.forEach(b => {
+    if (b.type === 'h1' || b.type === 'h2') { current = { title: b.text, body: [] }; raw.push(current); }
+    else { if (!current) { current = { title: fallbackTitle, body: [] }; raw.push(current); } current.body.push(b.text); }
+  });
+  if (!raw.length) raw.push({ title: fallbackTitle, body: [] });
+  const out = [];
+  raw.forEach(s => {
+    if (s.body.length <= MAX_LINES) { out.push(s); return; }
+    for (let i = 0; i < s.body.length; i += MAX_LINES)
+      out.push({ title: i === 0 ? s.title : s.title + ' (lanjutan)', body: s.body.slice(i, i + MAX_LINES) });
+  });
+  return out;
+}
+
+async function buildPptxBlob(slides) {
+  const n = slides.length;
+  const zip = new JSZip();
+  zip.file('[Content_Types].xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/><Override PartName="/ppt/slideMasters/slideMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml"/><Override PartName="/ppt/slideLayouts/slideLayout1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml"/><Override PartName="/ppt/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>${slides.map((_,i)=>`<Override PartName="/ppt/slides/slide${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>`).join('')}</Types>`);
+  zip.file('_rels/.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="ppt/presentation.xml"/></Relationships>`);
+  zip.file('ppt/presentation.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<p:presentation xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:sldMasterIdLst><p:sldMasterId id="2147483648" r:id="rIdMaster"/></p:sldMasterIdLst><p:sldIdLst>${slides.map((_,i)=>`<p:sldId id="${256+i}" r:id="rIdSlide${i+1}"/>`).join('')}</p:sldIdLst><p:sldSz cx="9144000" cy="6858000"/><p:notesSz cx="6858000" cy="9144000"/></p:presentation>`);
+  zip.file('ppt/_rels/presentation.xml.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rIdMaster" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster" Target="slideMasters/slideMaster1.xml"/>${slides.map((_,i)=>`<Relationship Id="rIdSlide${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide${i+1}.xml"/>`).join('')}</Relationships>`);
+  zip.file('ppt/slideMasters/slideMaster1.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<p:sldMaster xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/></p:spTree></p:cSld><p:clrMap bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/><p:sldLayoutIdLst><p:sldLayoutId id="2147483649" r:id="rId1"/></p:sldLayoutIdLst></p:sldMaster>`);
+  zip.file('ppt/slideMasters/_rels/slideMaster1.xml.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="../slideLayouts/slideLayout1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="../theme/theme1.xml"/></Relationships>`);
+  zip.file('ppt/slideLayouts/slideLayout1.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<p:sldLayout xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" type="blank"><p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/></p:spTree></p:cSld><p:clrMapOvr><a:overrideClrMapping bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/></p:clrMapOvr></p:sldLayout>`);
+  zip.file('ppt/slideLayouts/_rels/slideLayout1.xml.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster" Target="../slideMasters/slideMaster1.xml"/></Relationships>`);
+  zip.file('ppt/theme/theme1.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="OCD"><a:themeElements><a:clrScheme name="OCD"><a:dk1><a:sysClr val="windowText" lastClr="000000"/></a:dk1><a:lt1><a:sysClr val="window" lastClr="FFFFFF"/></a:lt1><a:dk2><a:srgbClr val="0A0A0A"/></a:dk2><a:lt2><a:srgbClr val="F5F5F5"/></a:lt2><a:accent1><a:srgbClr val="F5F500"/></a:accent1><a:accent2><a:srgbClr val="333333"/></a:accent2><a:accent3><a:srgbClr val="666666"/></a:accent3><a:accent4><a:srgbClr val="999999"/></a:accent4><a:accent5><a:srgbClr val="CCCCCC"/></a:accent5><a:accent6><a:srgbClr val="000000"/></a:accent6><a:hlink><a:srgbClr val="0563C1"/></a:hlink><a:folHlink><a:srgbClr val="954F72"/></a:folHlink></a:clrScheme><a:fontScheme name="OCD"><a:majorFont><a:latin typeface="Arial"/><a:ea typeface=""/><a:cs typeface=""/></a:majorFont><a:minorFont><a:latin typeface="Arial"/><a:ea typeface=""/><a:cs typeface=""/></a:minorFont></a:fontScheme><a:fmtScheme name="OCD"><a:fillStyleLst><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:fillStyleLst><a:lnStyleLst><a:ln w="6350"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:ln><a:ln w="12700"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:ln><a:ln w="19050"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:ln></a:lnStyleLst><a:effectStyleLst><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle></a:effectStyleLst><a:bgFillStyleLst><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:bgFillStyleLst></a:fmtScheme></a:themeElements></a:theme>`);
+
+  slides.forEach((s, i) => {
+    const bodyParas = s.body.length
+      ? s.body.map(line => `<a:p><a:r><a:rPr lang="id-ID" sz="1800"/><a:t>${escapeXml(line)}</a:t></a:r></a:p>`).join('')
+      : '<a:p/>';
+    zip.file(`ppt/slides/slide${i+1}.xml`, `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/>
+<p:sp><p:nvSpPr><p:cNvPr id="2" name="Title"/><p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="457200" y="274638"/><a:ext cx="8229600" cy="1143000"/></a:xfrm></p:spPr><p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr lang="id-ID" sz="3200" b="1"/><a:t>${escapeXml(s.title || '')}</a:t></a:r></a:p></p:txBody></p:sp>
+<p:sp><p:nvSpPr><p:cNvPr id="3" name="Body"/><p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="457200" y="1600200"/><a:ext cx="8229600" cy="4800600"/></a:xfrm></p:spPr><p:txBody><a:bodyPr/><a:lstStyle/>${bodyParas}</p:txBody></p:sp>
+</p:spTree></p:cSld><p:clrMapOvr><a:overrideClrMapping bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/></p:clrMapOvr></p:sld>`);
+    zip.file(`ppt/slides/_rels/slide${i+1}.xml.rels`, `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="../slideLayouts/slideLayout1.xml"/></Relationships>`);
+  });
+
+  return zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation' });
+}
+
 async function mdConvert(file,tgt) {
   const text=await file.text();
   if(tgt==='html'){
@@ -1475,6 +1968,13 @@ async function mdConvert(file,tgt) {
     const lines=doc.splitTextToSize(text,180);let y=20;
     lines.forEach(line=>{if(y>280){doc.addPage();y=20;}doc.setFontSize(11);doc.text(line,15,y);y+=6;});
     addResult(base(file.name)+'.pdf',doc.output('blob'),'application/pdf');
+  }else if(tgt==='docx'){
+    const blocks=mdToBlocks(text);
+    addResult(base(file.name)+'.docx',await buildDocxBlob(blocks),'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+  }else if(tgt==='pptx'){
+    const blocks=mdToBlocks(text);
+    const slides=blocksToSlides(blocks, base(file.name));
+    addResult(base(file.name)+'.pptx',await buildPptxBlob(slides),'application/vnd.openxmlformats-officedocument.presentationml.presentation');
   }
   log(`${file.name} → ${tgt.toUpperCase()} OK`,'ok');
 }
@@ -1498,6 +1998,11 @@ async function txtConvert(file,tgt) {
   }else if(tgt==='json'){
     const lines=text.split('\n').filter(l=>l.trim());
     addResult(base(file.name)+'.json',new Blob([JSON.stringify(lines,null,2)],{type:'application/json'}),'application/json');
+  }else if(tgt==='docx'){
+    addResult(base(file.name)+'.docx',await buildDocxBlob(plainToBlocks(text)),'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+  }else if(tgt==='pptx'){
+    const slides=blocksToSlides(plainToBlocks(text), base(file.name));
+    addResult(base(file.name)+'.pptx',await buildPptxBlob(slides),'application/vnd.openxmlformats-officedocument.presentationml.presentation');
   }
   log(`${file.name} → ${tgt.toUpperCase()} OK`,'ok');
 }
@@ -1528,6 +2033,13 @@ async function htmlConvert(file,tgt) {
       .replace(/<li[^>]*>(.*?)<\/li>/gi,'- $1\n').replace(/<[^>]+>/g,'')
       .replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&nbsp;/g,' ');
     addResult(base(file.name)+'.md',new Blob([md],{type:'text/plain'}),'text/plain');
+  }else if(tgt==='docx'){
+    const content=doc2.body.innerText||doc2.body.textContent;
+    addResult(base(file.name)+'.docx',await buildDocxBlob(plainToBlocks(content)),'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+  }else if(tgt==='pptx'){
+    const content=doc2.body.innerText||doc2.body.textContent;
+    const slides=blocksToSlides(plainToBlocks(content), base(file.name));
+    addResult(base(file.name)+'.pptx',await buildPptxBlob(slides),'application/vnd.openxmlformats-officedocument.presentationml.presentation');
   }
   log(`${file.name} → ${tgt.toUpperCase()} OK`,'ok');
 }
@@ -1543,6 +2055,7 @@ async function pptxToText(file) {
     const doc2=parser.parseFromString(xml,'application/xml');
     const txts=Array.from(doc2.querySelectorAll('t')).map(el=>el.textContent).join(' ');
     text+=`--- Slide ${i+1} ---\n${txts}\n\n`;
+    if(i%8===0) await yieldToUI();
   }
   addResult(base(file.name)+'.txt',new Blob([text],{type:'text/plain'}),'text/plain');
   log(`${file.name} → TXT OK (${slideFiles.length} slides)`,'ok');
@@ -1589,6 +2102,7 @@ async function pptxToImages(file,tgt) {
       doc.addImage(imgData,'JPEG',0,0,297,210);
     }
     log(`  → Slide ${i+1}/${slideFiles.length}`,'ok');
+    if(i%3===0) await yieldToUI();
   }
   if(tgt==='pdf'&&doc) addResult(base(file.name)+'.pdf',doc.output('blob'),'application/pdf');
   log(`${file.name} → ${tgt.toUpperCase()} OK`,'ok');
