@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>OCD — Test Suite</title>
+<style>
+  :root { --Y:#F5F500; --B:#0A0A0A; --W:#fff; --G3:#2A2A2A; --GR:#00FF88; --RD:#FF3333; --MU:#888; }
+  * { box-sizing:border-box; }
+  body { background:var(--B); color:var(--W); font-family:'IBM Plex Mono',monospace; padding:28px; }
+  h1 { color:var(--Y); font-size:18px; letter-spacing:1px; margin-bottom:4px; }
+  .desc { color:var(--MU); font-size:12px; margin-bottom:20px; }
+  .group-title { color:var(--Y); font-size:11px; letter-spacing:2px; text-transform:uppercase; margin:22px 0 8px; border-bottom:1px solid var(--G3); padding-bottom:6px; }
+  .case { padding:5px 0; font-size:12.5px; display:flex; gap:8px; }
+  .case .tag { flex-shrink:0; width:16px; }
+  .pass .tag { color:var(--GR); }
+  .fail .tag { color:var(--RD); }
+  .fail .detail { color:var(--RD); opacity:.8; }
+  #summary { margin-top:26px; padding:14px 18px; border:1.5px solid var(--G3); font-size:13px; }
+  #summary.ok { border-color:var(--GR); color:var(--GR); }
+  #summary.bad { border-color:var(--RD); color:var(--RD); }
+  iframe { display:none; }
+</style>
+</head>
+<body>
+
+<h1>OCD — TEST SUITE</h1>
+<div class="desc">Menjalankan test terhadap fungsi asli di index.html (dimuat lewat iframe tersembunyi, tanpa mengubah kode aplikasinya).</div>
+
+<div id="results"></div>
+<div id="summary">Memuat aplikasi…</div>
+
+<iframe id="app-frame" src="index.html"></iframe>
+
+<script>
+const resultsEl = document.getElementById('results');
+const summaryEl = document.getElementById('summary');
+let pass = 0, fail = 0;
+let currentGroup = null;
+
+function group(name) {
+  currentGroup = name;
+  const h = document.createElement('div');
+  h.className = 'group-title';
+  h.textContent = name;
+  resultsEl.appendChild(h);
+}
+
+function report(name, ok, detail) {
+  const div = document.createElement('div');
+  div.className = 'case ' + (ok ? 'pass' : 'fail');
+  div.innerHTML = `<span class="tag">${ok ? '✓' : '✕'}</span><span>${name}${detail ? ` — <span class="detail">${detail}</span>` : ''}</span>`;
+  resultsEl.appendChild(div);
+  ok ? pass++ : fail++;
+}
+
+function assertEqual(name, actual, expected) {
+  const ok = actual === expected;
+  report(name, ok, ok ? '' : `harusnya ${JSON.stringify(expected)}, malah ${JSON.stringify(actual)}`);
+}
+
+function assertTrue(name, cond, detail) {
+  report(name, !!cond, cond ? '' : (detail || 'kondisi false'));
+}
+
+async function assertRejects(name, fn, matchMsg) {
+  try {
+    await fn();
+    report(name, false, 'harusnya throw, tapi tidak');
+  } catch (e) {
+    const ok = matchMsg ? matchMsg.test(e.message) : true;
+    report(name, ok, ok ? '' : `pesan error tidak cocok: "${e.message}"`);
+  }
+}
+
+const frame = document.getElementById('app-frame');
+frame.addEventListener('load', async () => {
+  let w, d, t;
+  try {
+    w = frame.contentWindow;
+    d = w.document; // ← ini yang gagal kalau dibuka lewat file:// (cross-origin block)
+    const bridge = d.createElement('script');
+    bridge.textContent = 'window.__t = { state, CONVERSIONS };';
+    d.body.appendChild(bridge);
+    t = w.__t;
+  } catch (err) {
+    summaryEl.innerHTML =
+      `Gagal akses isi index.html di dalam iframe: <code>${err.message}</code><br><br>` +
+      `Ini keterbatasan Chrome: kalau file dibuka langsung lewat <code>file://</code>, ` +
+      `iframe antar-file dianggap origin berbeda dan diblokir demi keamanan.<br><br>` +
+      `<b>Solusi:</b> jalankan lewat local server, bukan double-click file-nya.<br>` +
+      `Di folder OCD (lewat cmd/terminal), jalankan salah satu:<br>` +
+      `<code>python -m http.server 8000</code> (kalau ada Python)<br>` +
+      `atau <code>npx serve .</code> (kalau ada Node.js)<br><br>` +
+      `Lalu buka <code>http://localhost:8000/test.html</code> di browser — bukan file:// lagi.`;
+    summaryEl.className = 'bad';
+    return;
+  }
+
+  try {
+    await runTests(w, d, t);
+  } catch (e) {
+    report('Test runner crash', false, e.message);
+  }
+
+  summaryEl.textContent = `${pass} lolos, ${fail} gagal — dari ${pass + fail} test`;
+  summaryEl.className = fail ? 'bad' : 'ok';
+});
+
+async function safeGroup(name, fn) {
+  group(name);
+  try {
+    await fn();
+  } catch (e) {
+    report(`Grup "${name}" berhenti karena error`, false, e.message);
+  }
+}
+
+async function runTests(w, d, t) {
+
+  await safeGroup('Util dasar', async () => {
+    assertEqual('ext() ambil ekstensi & lowercase', w.ext('Laporan.PDF'), 'pdf');
+    assertEqual('base() buang ekstensi', w.base('Laporan.Akhir.pdf'), 'Laporan.Akhir');
+    assertEqual('fmtSize() di bawah 1KB', w.fmtSize(500), '500 B');
+    assertEqual('fmtSize() dalam KB', w.fmtSize(2048), '2.0 KB');
+    assertEqual('fmtSize() dalam MB', w.fmtSize(5 * 1048576), '5.00 MB');
+    assertEqual('sniffDelim() deteksi koma', w.sniffDelim('a,b,c\n1,2,3'), ',');
+    assertEqual('sniffDelim() deteksi titik-koma', w.sniffDelim('a;b;c\n1;2;3'), ';');
+    assertEqual('stripMdInline() buang bold', w.stripMdInline('**tebal**'), 'tebal');
+    assertEqual('stripMdInline() buang italic', w.stripMdInline('*miring*'), 'miring');
+    assertEqual('stripMdInline() buang inline code', w.stripMdInline('`kode`'), 'kode');
+  });
+
+  await safeGroup('Keamanan — escaping', async () => {
+    assertEqual('escapeHtml() escape tag script',
+      w.escapeHtml('<img src=x onerror=alert(1)>'),
+      '&lt;img src=x onerror=alert(1)&gt;');
+    assertEqual('escapeHtml() escape kutip',
+      w.escapeHtml(`"'&`), '&quot;&#39;&amp;');
+    assertEqual('escapeXml() escape karakter XML',
+      w.escapeXml('A & B < C > D'), 'A &amp; B &lt; C &gt; D');
+  });
+
+  await safeGroup('Parsing markdown & teks polos', async () => {
+    const mdBlocks = w.mdToBlocks('# Judul\n\nIni paragraf biasa.');
+    assertTrue('mdToBlocks() heading terdeteksi', mdBlocks[0]?.type === 'h1' && mdBlocks[0]?.text === 'Judul',
+      JSON.stringify(mdBlocks[0]));
+    assertTrue('mdToBlocks() paragraf terdeteksi', mdBlocks[1]?.type === 'p' && mdBlocks[1]?.text === 'Ini paragraf biasa.',
+      JSON.stringify(mdBlocks[1]));
+
+    const plainBlocks = w.plainToBlocks('Baris satu.\n\nBaris dua.');
+    assertEqual('plainToBlocks() pecah per baris kosong', plainBlocks.length, 2);
+
+    const tableXml = w.rowsToTableXml([['Nama','Umur'],['Budi','20']]);
+    assertTrue('rowsToTableXml() hasilkan <w:tbl>', tableXml.startsWith('<w:tbl>'));
+    assertTrue('rowsToTableXml() 2 baris → 2 <w:tr>', (tableXml.match(/<w:tr>/g)||[]).length === 2);
+  });
+
+  await safeGroup('Dispatcher konversi & pesan error', async () => {
+    await assertRejects(
+      'convertFile() tolak kombinasi tak didukung',
+      () => w.convertFile(new w.File(['x'], 'a.xyz'), 'xyz', 'abc'),
+      /belum didukung/
+    );
+
+    assertTrue('friendlyErrorMessage() kenali file corrupt/zip rusak',
+      /rusak|corrupt/i.test(w.friendlyErrorMessage(new Error('Corrupted zip: end of central directory record not found'))));
+    assertTrue('friendlyErrorMessage() kenali file ber-password',
+      /password/i.test(w.friendlyErrorMessage(new Error('This document is password protected'))));
+    assertTrue('friendlyErrorMessage() kenali out-of-memory + ukuran file',
+      /besar|kompleks/i.test(w.friendlyErrorMessage(
+        new Error('Allocation failed - JavaScript heap out of memory'),
+        new w.File([new Uint8Array(10)], 'file_gede.pdf', { type: 'application/pdf' })
+      )));
+    assertTrue('friendlyErrorMessage() fallback utk error tak dikenal',
+      w.friendlyErrorMessage(new Error('Something totally unexpected happened here')).includes('Something totally unexpected'));
+  });
+
+  await safeGroup('Integrasi — CSV → JSON', async () => {
+    t.state.results = [];
+    const csvFile = new w.File(['nama,umur\nBudi,20\nSari,22'], 'peserta.csv', { type: 'text/csv' });
+    await w.csvConvert(csvFile, 'json');
+    const csvToJson = t.state.results.find(r => r.filename === 'peserta.json');
+    assertTrue('csvConvert() → JSON menghasilkan file', !!csvToJson);
+    if (csvToJson) {
+      const parsed = JSON.parse(await csvToJson.blob.text());
+      assertEqual('csvConvert() → JSON: baris pertama benar', parsed[0]?.nama, 'Budi');
+      assertEqual('csvConvert() → JSON: jumlah baris benar', parsed.length, 2);
+    }
+  });
+
+  await safeGroup('Integrasi — JSON → CSV', async () => {
+    t.state.results = [];
+    const jsonFile = new w.File([JSON.stringify([{a:1,b:2},{a:3,b:4}])], 'angka.json', { type: 'application/json' });
+    await w.jsonConvert(jsonFile, 'csv');
+    const jsonToCsv = t.state.results.find(r => r.filename === 'angka.csv');
+    assertTrue('jsonConvert() → CSV menghasilkan file', !!jsonToCsv);
+    if (jsonToCsv) {
+      const text = await jsonToCsv.blob.text();
+      assertTrue('jsonConvert() → CSV: header & data ada', text.includes('a') && text.includes('b') && text.includes('1') && text.includes('3'));
+    }
+  });
+
+  await safeGroup('Integrasi — TXT → JSON', async () => {
+    t.state.results = [];
+    const txtFile = new w.File(['baris satu\nbaris dua\n\nbaris tiga'], 'catatan.txt', { type: 'text/plain' });
+    await w.txtConvert(txtFile, 'json');
+    const txtToJson = t.state.results.find(r => r.filename === 'catatan.json');
+    assertTrue('txtConvert() → JSON menghasilkan file', !!txtToJson);
+    if (txtToJson) {
+      const lines = JSON.parse(await txtToJson.blob.text());
+      assertEqual('txtConvert() → JSON: baris kosong ke-filter', lines.length, 3);
+    }
+  });
+
+  await safeGroup('Integrasi — MD → TXT', async () => {
+    t.state.results = [];
+    const mdFile = new w.File(['# Judul\n\n**tebal** biasa'], 'draf.md', { type: 'text/markdown' });
+    await w.mdConvert(mdFile, 'txt');
+    const mdToTxt = t.state.results.find(r => r.filename === 'draf.txt');
+    assertTrue('mdConvert() → TXT menghasilkan file', !!mdToTxt);
+    if (mdToTxt) {
+      const text = await mdToTxt.blob.text();
+      assertEqual('mdConvert() → TXT: markdown ter-strip bersih', text, 'Judul\n\ntebal biasa');
+    }
+  });
+
+  await safeGroup('Antrean file', async () => {
+    t.state.files = [];
+    w.addFiles([ new w.File(['x'], 'satu.csv', { type:'text/csv' }) ]);
+    w.addFiles([ new w.File(['x'], 'satu.csv', { type:'text/csv' }) ]); // duplikat nama+ukuran
+    assertEqual('addFiles() tolak duplikat (nama+ukuran sama)', t.state.files.length, 1);
+
+    w.addFiles([ new w.File(['x'], 'file.aneh12345', { type:'' }) ]); // ekstensi tak didukung
+    assertEqual('addFiles() lewati ekstensi tak didukung', t.state.files.length, 1);
+
+    w.clearQueue();
+    assertEqual('clearQueue() kosongkan antrean', t.state.files.length, 0);
+  });
+
+  await safeGroup('Regresi keamanan — nama file berbahaya', async () => {
+    t.state.files = [];
+    const evilName = '<img src=x onerror=alert(1)>.txt';
+    w.addFiles([ new w.File(['isi'], evilName, { type:'text/plain' }) ]);
+    const queueHtml = d.getElementById('file-queue').innerHTML;
+    assertTrue('renderQueue() tidak render tag <img> mentah dari nama file',
+      !/<img[^>]*onerror/i.test(queueHtml));
+    assertTrue('renderQueue() nama file muncul dalam bentuk ter-escape',
+      queueHtml.includes('&lt;img'));
+    w.clearQueue();
+
+    t.state.results = [];
+    const evilResultFile = new w.File(['isi'], "<svg onload=alert(1)>.csv", { type:'text/csv' });
+    await w.csvConvert(evilResultFile, 'json');
+    const resultsHtml = d.getElementById('results-list').innerHTML;
+    assertTrue('addResult() tidak render tag <svg> mentah dari nama file',
+      !/<svg[^>]*onload/i.test(resultsHtml));
+    w.clearResults();
+  });
+}
+</script>
+</body>
+</html>
