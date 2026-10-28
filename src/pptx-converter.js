@@ -385,18 +385,24 @@
     }));
     [deck.fonts.major, deck.fonts.minor].forEach((f) => f && names.add(f));
     const system = /^(arial|calibri|cambria|times new roman|segoe ui|verdana|tahoma|georgia|courier new|consolas|trebuchet ms|helvetica|comic sans ms|impact|aptos)/i;
-    const need = [...new Set([...names].map((n) => parseFont(n).family))].filter((n) => !system.test(n) && !(document.fonts && document.fonts.check(`16px "${n}"`)));
+    const need = [...new Set([...names].map((n) => parseFont(n).family))].filter((n) => !system.test(n));
+    const fam = (n) => encodeURIComponent(n).replace(/%20/g, '+');
+    const addSheet = (href) => new Promise((res) => {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet'; link.href = href;
+      link.onload = () => res(true); link.onerror = () => res(false);
+      setTimeout(() => res(false), 5000);
+      document.head.appendChild(link);
+    });
     await Promise.all(need.map(async (n) => {
       try {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(n).replace(/%20/g, '+')}:ital,wght@0,400;0,700;1,400;1,700&display=swap`;
-        const loaded = new Promise((res) => { link.onload = res; link.onerror = res; setTimeout(res, 4000); });
-        document.head.appendChild(link);
-        await loaded;
+        // coba bobot 400+700 dulu; kalau font tidak punya bobot itu, coba tanpa spesifikasi bobot
+        let ok = await addSheet(`https://fonts.googleapis.com/css2?family=${fam(n)}:wght@400;700&display=swap`);
+        if (!ok) ok = await addSheet(`https://fonts.googleapis.com/css2?family=${fam(n)}&display=swap`);
+        if (!ok) return;
         await Promise.race([
           Promise.all([document.fonts.load(`16px "${n}"`), document.fonts.load(`bold 16px "${n}"`)]),
-          new Promise((res) => setTimeout(res, 4000)),
+          new Promise((res) => setTimeout(res, 5000)),
         ]);
       } catch (e) { /* pakai font cadangan */ }
     }));
