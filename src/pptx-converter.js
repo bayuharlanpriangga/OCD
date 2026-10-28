@@ -124,8 +124,38 @@
     return hit ? xfrmOf(kid(hit, NS_P, 'spPr')) : null;
   }
 
+  function findPlaceholderEl(root, ph) {
+    if (!root || !ph) return null;
+    const tree = path(kid(root, NS_P, 'cSld'), 'spTree');
+    if (!tree) return null;
+    const norm = (t) => (t === 'ctrTitle' ? 'title' : t);
+    const sps = kids(tree, NS_P, 'sp');
+    return sps.find((x) => { const p = phInfo(x); return p && ph.idx && p.idx === ph.idx; })
+      || sps.find((x) => { const p = phInfo(x); return p && norm(p.type) === norm(ph.type); }) || null;
+  }
+  // rantai pewarisan gaya teks: shape -> layout -> master -> txStyles
+  function styleChain(el, ph, layout, master) {
+    const chain = [];
+    const own = kid(kid(el, NS_P, 'txBody'), NS_A, 'lstStyle');
+    if (own) chain.push(own);
+    [layout, master].forEach((r) => {
+      const hit = findPlaceholderEl(r, ph);
+      const ls = hit && kid(kid(hit, NS_P, 'txBody'), NS_A, 'lstStyle');
+      if (ls) chain.push(ls);
+    });
+    const ts = master && kid(master, NS_P, 'txStyles');
+    if (ts) {
+      const t = ph ? (/^(title|ctrTitle)$/.test(ph.type) ? 'titleStyle' : 'bodyStyle') : 'otherStyle';
+      const st = kid(ts, NS_P, t);
+      if (st) chain.push(st);
+    }
+    return chain;
+  }
+  const defRPrs = (chain, lvl) => chain.map((c) => { const l = kid(c, NS_A, `lvl${lvl + 1}pPr`); return l && kid(l, NS_A, 'defRPr'); }).filter(Boolean);
+  const pickAttr = (list, attr) => { for (const e of list) { const v = e.getAttribute(attr); if (v !== null) return v; } return null; };
+
   /* ---------- teks ---------- */
-  function readParagraphs(txBody, ctx, ph) {
+  function readParagraphs(txBody, ctx, ph, chain = []) {
     const paras = [];
     kids(txBody, NS_A, 'p').forEach((p) => {
       const pPr = kid(p, NS_A, 'pPr');
@@ -136,13 +166,21 @@
         const t = kid(c, NS_A, 't');
         if (!t) return;
         const rPr = kid(c, NS_A, 'rPr');
+        const lvl = pPr ? num(pPr.getAttribute('lvl')) : 0;
+        const list = [rPr, ...defRPrs(chain, lvl)].filter(Boolean);
+        const sz = pickAttr(list, 'sz');
+        let font = null, color = null;
+        for (const e of list) {
+          if (!font) font = fontOf(e, ctx);
+          if (!color) color = colorOf(kid(e, NS_A, 'solidFill'), ctx);
+        }
         runs.push({
           text: t.textContent,
-          size: rPr && rPr.getAttribute('sz') ? num(rPr.getAttribute('sz')) / 100 : null,
-          bold: rPr ? rPr.getAttribute('b') === '1' : false,
-          italic: rPr ? rPr.getAttribute('i') === '1' : false,
-          color: rPr ? colorOf(kid(rPr, NS_A, 'solidFill'), ctx) : null,
-          font: fontOf(rPr, ctx),
+          size: sz ? num(sz) / 100 : null,
+          bold: pickAttr(list, 'b') === '1',
+          italic: pickAttr(list, 'i') === '1',
+          color,
+          font,
         });
       });
       const text = runs.map((r) => r.text).join('').replace(/\n/g, ' ').trim();
@@ -217,7 +255,7 @@
           };
           const tx = kid(el, NS_P, 'txBody');
           if (tx) {
-            shape.paras = readParagraphs(tx, ctx, ph);
+            shape.paras = readParagraphs(tx, ctx, ph, styleChain(el, ph, layout, master));
             const bp = kid(tx, NS_A, 'bodyPr');
             shape.anchor = bp ? bp.getAttribute('anchor') || (ph && /title|ctrTitle/.test(ph.type) ? 'ctr' : 't') : 't';
             if (ph && ph.type === 'ctrTitle' && !bp) shape.anchor = 'ctr';
@@ -225,7 +263,7 @@
             if (real.length) {
               const isTitle = ph && /^(title|ctrTitle)$/.test(ph.type);
               if (isTitle && !slide.title) slide.title = real.join(' ');
-              else if (!(ph && /^(sldNum|dt|ftr)$/.test(ph.type))) slide.texts.push(...shape.paras.filter((p) => p.text).map((p) => ({ text: p.text, bullet: p.bullet, level: p.level })));
+              else if (!(ph && /^(sldNum|dt|ftr)$/.test(ph.type))) slide.texts.push(...shape.paras.filter((p) => p.text).map((p) => ({ text: p.text, bullet: p.bullet, level: p.level, font: (p.runs.find((r) => r.font) || {}).font || null })));
             }
           }
           slide.shapes.push(shape);
@@ -327,7 +365,16 @@
 
   let fontsRef = { major: null, minor: null };
   const SCRIPT = /script|dancing|pacifico|lobster|great vibes|allura|brush|hand|cursive|sacramento|satisfy|vibes|signature/i;
-  const familyFor = (name) => (name ? `"${name}", ${SCRIPT.test(name) ? 'cursive' : 'Arial, Helvetica, sans-serif'}` : '"Segoe UI", Arial, Helvetica, sans-serif');
+  const parseFont = (name) => {
+    let family = String(name || '').trim(), bold = false, italic = false, m;
+    while ((m = /\s+(Bold|Italic|Light|Medium|SemiBold|Semi Bold|ExtraBold|Extra Bold|Black|Regular|Thin|ExtraLight)$/i.exec(family))) {
+      if (/bold|black/i.test(m[1])) bold = true;
+      if (/italic/i.test(m[1])) italic = true;
+      family = family.slice(0, m.index);
+    }
+    return { family: family || String(name), bold, italic };
+  };
+  const familyFor = (name) => (name ? `"${parseFont(name).family}", ${SCRIPT.test(name) ? 'cursive' : 'Arial, Helvetica, sans-serif'}` : '"Segoe UI", Arial, Helvetica, sans-serif');
 
   // Muat font yang dipakai slide (Google Fonts) agar tampilan sama dengan aslinya
   async function ensureFonts(deck) {
@@ -338,7 +385,7 @@
     }));
     [deck.fonts.major, deck.fonts.minor].forEach((f) => f && names.add(f));
     const system = /^(arial|calibri|cambria|times new roman|segoe ui|verdana|tahoma|georgia|courier new|consolas|trebuchet ms|helvetica|comic sans ms|impact|aptos)/i;
-    const need = [...names].filter((n) => !system.test(n) && !(document.fonts && document.fonts.check(`16px "${n}"`)));
+    const need = [...new Set([...names].map((n) => parseFont(n).family))].filter((n) => !system.test(n) && !(document.fonts && document.fonts.check(`16px "${n}"`)));
     await Promise.all(need.map(async (n) => {
       try {
         const link = document.createElement('link');
@@ -385,7 +432,7 @@
       const pt = ptRaw || (isTitle ? defaultPt * 2.2 : defaultPt);
       const px = pt * EMU_PT * k;
       const indent = (p.bullet ? px * 1.1 : 0) + p.level * px * 1.2;
-      const fontFor = (r) => `${r.italic ? 'italic ' : ''}${r.bold || (isTitle && !r.font) ? 'bold ' : ''}${(r.size ? r.size * EMU_PT * k : px).toFixed(1)}px ${familyFor(r.font || (isTitle ? fontsRef.major : fontsRef.minor))}`;
+      const fontFor = (r) => `${r.italic || (r.font && parseFont(r.font).italic) ? 'italic ' : ''}${r.bold || (r.font && parseFont(r.font).bold) || (isTitle && !r.font) ? 'bold ' : ''}${(r.size ? r.size * EMU_PT * k : px).toFixed(1)}px ${familyFor(r.font || (isTitle ? fontsRef.major : fontsRef.minor))}`;
       const lines = p.runs.length ? wrapRuns(c, p, fontFor, Math.max(10, bw - indent)) : [{ toks: [], w: 0 }];
       const lh = px * 1.2;
       blocks.push({ p, lines, lh, px, indent, fontFor });
@@ -493,19 +540,19 @@
   }
   function toHtml(deck) {
     const body = deck.slides.map((s, i) => {
-      const items = s.texts.map((t) => `<p style="margin:.35em 0 .35em ${t.level * 1.4}em">${t.bullet ? '• ' : ''}${esc(t.text)}</p>`).join('');
+      const items = s.texts.map((t) => `<p style="margin:.35em 0 .35em ${t.level * 1.4}em${t.font ? `;font-family:'${esc(parseFont(t.font).family)}',cursive,sans-serif${parseFont(t.font).bold ? ';font-weight:700' : ''}` : ''}">${t.bullet ? '• ' : ''}${esc(t.text)}</p>`).join('');
       return `<section><h2>Slide ${i + 1}${s.title ? ` — ${esc(s.title)}` : ''}</h2>${items}${s.notes ? `<blockquote>${esc(s.notes)}</blockquote>` : ''}</section>`;
     }).join('\n');
     return `<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(deck.name)}</title><style>body{font-family:system-ui,Arial,sans-serif;max-width:800px;margin:2rem auto;padding:0 1rem;line-height:1.5}section{border:1px solid #ccc;border-radius:10px;padding:1rem 1.4rem;margin:1.2rem 0}h2{margin-top:0}blockquote{color:#666;border-left:3px solid #ccc;margin:1rem 0 0;padding-left:1rem}</style></head><body><h1>${esc(deck.name)}</h1>\n${body}\n</body></html>`;
   }
 
   async function toDocx(deck) {
-    const run = (t, o = {}) => `<w:r><w:rPr>${o.b ? '<w:b/>' : ''}${o.i ? '<w:i/>' : ''}${o.sz ? `<w:sz w:val="${o.sz}"/>` : ''}</w:rPr><w:t xml:space="preserve">${esc(t)}</w:t></w:r>`;
+    const run = (t, o = {}) => `<w:r><w:rPr>${o.f ? `<w:rFonts w:ascii="${esc(o.f)}" w:hAnsi="${esc(o.f)}" w:cs="${esc(o.f)}"/>` : ''}${o.b ? '<w:b/>' : ''}${o.i ? '<w:i/>' : ''}${o.sz ? `<w:sz w:val="${o.sz}"/>` : ''}</w:rPr><w:t xml:space="preserve">${esc(t)}</w:t></w:r>`;
     const para = (inner, o = {}) => `<w:p><w:pPr>${o.pb ? '<w:pageBreakBefore/>' : ''}${o.ind ? `<w:ind w:left="${o.ind}"/>` : ''}<w:spacing w:after="${o.after ?? 120}"/></w:pPr>${inner}</w:p>`;
     const parts = [];
     deck.slides.forEach((s, i) => {
       parts.push(para(run(`Slide ${i + 1}${s.title ? `: ${s.title}` : ''}`, { b: true, sz: 32 }), { pb: i > 0, after: 200 }));
-      s.texts.forEach((t) => parts.push(para(run(`${t.bullet ? '• ' : ''}${t.text}`), { ind: 360 * (t.level + (t.bullet ? 1 : 0)) })));
+      s.texts.forEach((t) => parts.push(para(run(`${t.bullet ? '• ' : ''}${t.text}`, { f: t.font }), { ind: 360 * (t.level + (t.bullet ? 1 : 0)) })));
       if (s.notes) parts.push(para(run(`Catatan: ${s.notes}`, { i: true })));
     });
     const doc = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${parts.join('')}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>`;
