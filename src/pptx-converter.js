@@ -376,6 +376,27 @@
   };
   const familyFor = (name) => (name ? `"${parseFont(name).family}", ${SCRIPT.test(name) ? 'cursive' : 'Arial, Helvetica, sans-serif'}` : '"Segoe UI", Arial, Helvetica, sans-serif');
 
+  // Font yang dibundel lokal (tidak bergantung internet)
+  const LOCAL_FONTS = {
+    'dancing script': { family: 'Dancing Script', files: [[400, 'dancing-script-latin-400-normal.woff2'], [700, 'dancing-script-latin-700-normal.woff2']] },
+    'great vibes': { family: 'Great Vibes', files: [[400, 'great-vibes-latin-400-normal.woff2']] },
+    'pacifico': { family: 'Pacifico', files: [[400, 'pacifico-latin-400-normal.woff2']] },
+  };
+  async function loadLocalFont(name) {
+    const def = LOCAL_FONTS[name.toLowerCase()];
+    if (!def || !window.FontFace) return false;
+    try {
+      const add = async (weight, file) => {
+        const face = new FontFace(def.family, `url(${new URL(`vendor/fonts/${file}`, document.baseURI).href}) format("woff2")`, { weight: String(weight), style: 'normal' });
+        await face.load();
+        document.fonts.add(face);
+      };
+      for (const [weight, file] of def.files) await add(weight, file);
+      if (def.files.length === 1) await add(700, def.files[0][1]); // tanpa versi tebal: pakai yang sama
+      return true;
+    } catch (e) { console.warn('[OCD] gagal memuat font lokal', name, e); return false; }
+  }
+
   // Muat font yang dipakai slide (Google Fonts) agar tampilan sama dengan aslinya
   async function ensureFonts(deck) {
     const names = new Set();
@@ -396,10 +417,11 @@
     });
     await Promise.all(need.map(async (n) => {
       try {
+        if (await loadLocalFont(n)) return;
         // coba bobot 400+700 dulu; kalau font tidak punya bobot itu, coba tanpa spesifikasi bobot
         let ok = await addSheet(`https://fonts.googleapis.com/css2?family=${fam(n)}:wght@400;700&display=swap`);
         if (!ok) ok = await addSheet(`https://fonts.googleapis.com/css2?family=${fam(n)}&display=swap`);
-        if (!ok) return;
+        if (!ok) { console.warn('[OCD] font tidak bisa diunduh:', n); return; }
         await Promise.race([
           Promise.all([document.fonts.load(`16px "${n}"`), document.fonts.load(`bold 16px "${n}"`)]),
           new Promise((res) => setTimeout(res, 5000)),
