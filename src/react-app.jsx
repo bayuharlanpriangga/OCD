@@ -8,6 +8,7 @@ function save(filename, blob) { const url = URL.createObjectURL(blob), a = docum
 async function convert(file, target) {
   const source = getExt(file.name);
   if (source === target) throw new Error('Format asal dan tujuan tidak boleh sama.');
+  if (source === 'pptx') return window.PPTXConverter.convert(file, target);
   if (['txt', 'md', 'html'].includes(source)) {
     const raw = await file.text(); const text = source === 'html' ? new DOMParser().parseFromString(raw, 'text/html').body.textContent : raw;
     if (target === 'txt' || target === 'md') return { filename: `${getBase(file.name)}.${target}`, blob: new Blob([text], { type: 'text/plain' }) };
