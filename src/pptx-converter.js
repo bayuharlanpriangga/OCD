@@ -56,6 +56,23 @@
     });
     return out;
   }
+  function themeFonts(theme) {
+    const out = { major: null, minor: null };
+    const fs = theme && theme.getElementsByTagNameNS(NS_A, 'fontScheme')[0];
+    if (fs) {
+      const mj = kid(fs, NS_A, 'majorFont'), mn = kid(fs, NS_A, 'minorFont');
+      out.major = mj && kid(mj, NS_A, 'latin') ? kid(mj, NS_A, 'latin').getAttribute('typeface') : null;
+      out.minor = mn && kid(mn, NS_A, 'latin') ? kid(mn, NS_A, 'latin').getAttribute('typeface') : null;
+    }
+    return out;
+  }
+  function fontOf(rPr, ctx) {
+    const l = rPr && kid(rPr, NS_A, 'latin');
+    let f = l ? l.getAttribute('typeface') : null;
+    if (f === '+mj-lt') f = ctx.fonts.major;
+    else if (f === '+mn-lt') f = ctx.fonts.minor;
+    return f && !f.startsWith('+') ? f : null;
+  }
   function colorOf(fillEl, ctx) {
     if (!fillEl) return null;
     const c = fillEl.firstElementChild;
@@ -125,6 +142,7 @@
           bold: rPr ? rPr.getAttribute('b') === '1' : false,
           italic: rPr ? rPr.getAttribute('i') === '1' : false,
           color: rPr ? colorOf(kid(rPr, NS_A, 'solidFill'), ctx) : null,
+          font: fontOf(rPr, ctx),
         });
       });
       const text = runs.map((r) => r.text).join('').replace(/\n/g, ' ').trim();
@@ -280,14 +298,15 @@
     const sz = kid(pres, NS_P, 'sldSz');
     const size = { cx: sz ? num(sz.getAttribute('cx'), 9144000) : 9144000, cy: sz ? num(sz.getAttribute('cy'), 6858000) : 6858000 };
     const themeRel = Object.values(prels).find((r) => /theme$/.test(r.type));
-    const ctx = { theme: themeColors(themeRel ? await xml(zip, themeRel.path) : null) };
+    const themeXml = themeRel ? await xml(zip, themeRel.path) : null;
+    const ctx = { theme: themeColors(themeXml), fonts: themeFonts(themeXml) };
 
     const ids = kids(path(pres, 'sldIdLst'), NS_P, 'sldId');
     const slidePaths = ids.map((i) => prels[i.getAttributeNS(NS_R, 'id')]).filter(Boolean).map((r) => r.path);
     if (!slidePaths.length) throw new Error('Presentasi tidak memiliki slide.');
     const slides = [];
     for (const p of slidePaths) slides.push(await readSlide(zip, p, ctx));
-    return { zip, size, slides, name: baseName(file.name) };
+    return { zip, size, slides, name: baseName(file.name), fonts: ctx.fonts };
   }
 
   /* ---------- render ke canvas ---------- */
@@ -304,6 +323,36 @@
       cache[p] = await createImageBitmap(blob);
     } catch (e) { cache[p] = null; }
     return cache[p];
+  }
+
+  let fontsRef = { major: null, minor: null };
+  const SCRIPT = /script|dancing|pacifico|lobster|great vibes|allura|brush|hand|cursive|sacramento|satisfy|vibes|signature/i;
+  const familyFor = (name) => (name ? `"${name}", ${SCRIPT.test(name) ? 'cursive' : 'Arial, Helvetica, sans-serif'}` : '"Segoe UI", Arial, Helvetica, sans-serif');
+
+  // Muat font yang dipakai slide (Google Fonts) agar tampilan sama dengan aslinya
+  async function ensureFonts(deck) {
+    const names = new Set();
+    deck.slides.forEach((s) => s.shapes.forEach((sh) => {
+      (sh.paras || []).forEach((p) => p.runs.forEach((r) => r.font && names.add(r.font)));
+      if (sh.table) sh.table.rows.forEach((row) => row.cells.forEach((c) => c.paras.forEach((p) => p.runs.forEach((r) => r.font && names.add(r.font)))));
+    }));
+    [deck.fonts.major, deck.fonts.minor].forEach((f) => f && names.add(f));
+    const system = /^(arial|calibri|cambria|times new roman|segoe ui|verdana|tahoma|georgia|courier new|consolas|trebuchet ms|helvetica|comic sans ms|impact|aptos)/i;
+    const need = [...names].filter((n) => !system.test(n) && !(document.fonts && document.fonts.check(`16px "${n}"`)));
+    await Promise.all(need.map(async (n) => {
+      try {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(n).replace(/%20/g, '+')}:ital,wght@0,400;0,700;1,400;1,700&display=swap`;
+        const loaded = new Promise((res) => { link.onload = res; link.onerror = res; setTimeout(res, 4000); });
+        document.head.appendChild(link);
+        await loaded;
+        await Promise.race([
+          Promise.all([document.fonts.load(`16px "${n}"`), document.fonts.load(`bold 16px "${n}"`)]),
+          new Promise((res) => setTimeout(res, 4000)),
+        ]);
+      } catch (e) { /* pakai font cadangan */ }
+    }));
   }
 
   function wrapRuns(ctx2d, para, fontFor, maxW) {
@@ -336,7 +385,7 @@
       const pt = ptRaw || (isTitle ? defaultPt * 2.2 : defaultPt);
       const px = pt * EMU_PT * k;
       const indent = (p.bullet ? px * 1.1 : 0) + p.level * px * 1.2;
-      const fontFor = (r) => `${r.italic ? 'italic ' : ''}${r.bold || isTitle ? 'bold ' : ''}${(r.size ? r.size * EMU_PT * k : px).toFixed(1)}px "Segoe UI", Arial, Helvetica, sans-serif`;
+      const fontFor = (r) => `${r.italic ? 'italic ' : ''}${r.bold || (isTitle && !r.font) ? 'bold ' : ''}${(r.size ? r.size * EMU_PT * k : px).toFixed(1)}px ${familyFor(r.font || (isTitle ? fontsRef.major : fontsRef.minor))}`;
       const lines = p.runs.length ? wrapRuns(c, p, fontFor, Math.max(10, bw - indent)) : [{ toks: [], w: 0 }];
       const lh = px * 1.2;
       blocks.push({ p, lines, lh, px, indent, fontFor });
@@ -371,6 +420,7 @@
 
   async function renderSlide(deck, index, width, cache) {
     const { size, slides, zip } = deck;
+    fontsRef = deck.fonts || fontsRef;
     const slide = slides[index];
     const W = Math.round(width), H = Math.round(width * size.cy / size.cx);
     const canvas = document.createElement('canvas');
@@ -476,6 +526,7 @@
     if (target === 'docx') return { filename: `${name}.docx`, blob: await toDocx(deck) };
 
     const cache = {};
+    if (['pdf', 'png', 'jpg'].includes(target)) await ensureFonts(deck);
     if (target === 'pdf') {
       if (!window.jspdf) throw new Error('Library jsPDF belum termuat.');
       const wmm = deck.size.cx / 36000, hmm = deck.size.cy / 36000;
